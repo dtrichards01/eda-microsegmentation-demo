@@ -2,7 +2,7 @@
 
 **Repo:** https://github.com/dtrichards01/eda-microsegmentation-demo
 
-Standard **VirtualNetwork** services on an EVPN leaf fabric, using the **microsegmentation** app (GBP on SR Linux 26.3+).
+Standard **VirtualNetwork** services on an EVPN leaf fabric, using the **microsegmentation** app **6.0.2** (GBP on SR Linux 26.3+ / IXR-D2L/D3L). Lab EDA release: **26.4.2**.
 
 ## Policy intent
 

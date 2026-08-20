@@ -2,7 +2,8 @@
 
 **Last updated:** 2026-08-20  
 **Lab:** `3-tier-leaf-spine-dcgw` (clab on WSL)  
-**EDA:** `kind-eda-demo-wsl2` — https://127.0.0.1:9443  
+**EDA:** 26.4.2 (`kind-eda-demo-wsl2`) — https://127.0.0.1:9443  
+**Microsegmentation app:** 6.0.2  
 **Namespace:** `clab-3-tier-leaf-spine-dcgw`  
 **Repo:** https://github.com/dtrichards01/eda-microsegmentation-demo  
 **Policy intent (all variants):** red↔blue allow, blue↔green allow, red↔green drop, same-group allow, implicit default deny  
@@ -17,13 +18,15 @@
 
 ## 1. Executive summary (2026-08-20)
 
-| Variant | Scope | Association | Result | Notes |
+| Variant | Scope | Association | Status | Notes |
 |---------|-------|-------------|--------|-------|
-| **D** IRB | leaf-2/3/4 | IRB + VLAN helpers | **GO** | Full GBP matrix after 4-entry `ms-assoc-irb` |
-| **E** StaticRoute | leaf-6/7/8 | StaticRoute + VLAN | **GO** | Includes red→`172.16.91.1` static-prefix deny |
-| **C** RoutedIF | leaf-5/6/7 | RoutedInterface | **PARKED** | Policy on → all cross-subnet fails (platform?) |
-| **A** VLAN | leaf-1/2/3 | VLAN | **GO** (historical) | July 2026 baseline |
-| **B, F, G** | catalog | various | **Not re-validated** | See §6 historical run |
+| **A** VLAN | leaf-1/2/3 | VLAN | **Validated** | July 2026 baseline |
+| **B** BridgeInterface | leaf-5/6/7 | BridgeInterface (explicit BI names) | **Validated** | |
+| **C** RoutedIF | leaf-5/6/7 | RoutedInterface | **Failed** (under investigation) | Policy on → all cross-subnet fails |
+| **D** IRB | leaf-2/3/4 | IRB + VLAN helpers | **Validated** | Full GBP matrix after 4-entry `ms-assoc-irb` |
+| **E** StaticRoute | leaf-6/7/8 | StaticRoute + VLAN | **Validated** | Prefix deny via blackhole route — not tested to actual remote host |
+| **F** Router enf. | leaf-5/6/7 | VLAN | **Not currently validated** | |
+| **G** BD enf. | leaf-5/6/7 | VLAN | **Not currently validated** | L2 only |
 
 **Key findings (Aug 2026):**
 

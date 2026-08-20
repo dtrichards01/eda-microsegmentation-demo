@@ -1,6 +1,8 @@
 # EDA Microsegmentation
 
 **Environment:** WSL EDA (`kind-eda-demo-wsl2`) — UI https://127.0.0.1:9443  
+**EDA release:** 26.4.2  
+**Microsegmentation app:** 6.0.2  
 **Namespace:** `clab-3-tier-leaf-spine-dcgw`  
 **Services:** Seven dedicated `vnet-ms-*` VirtualNetworks (variants A–G)
 
@@ -15,7 +17,7 @@ This lab demonstrates Nokia EDA microsegmentation on a three-tier leaf–spine f
 - **Red** cannot talk to **Green**
 - All other cross-group traffic is denied by default (zero-trust)
 
-On the dataplane, EDA programs **Group-Based Policy (GBP)** on SR Linux **26.3+** (7220 IXR-D2/D3 leaf platforms).
+On the dataplane, EDA programs **Group-Based Policy (GBP)** on SR Linux **26.3+** (7220 IXR-D2L/D3L leaf platforms).
 
 ![Policy intent — red / blue / green](diagrams/policy-rules.png){width=6.5in}
 
@@ -31,7 +33,7 @@ Nokia EDA **microsegmentation** applies **zero-trust** security inside the netwo
 
 Policies reference **GroupTags**, not fixed VLAN IDs or IP addresses, so rule intent stays stable when VLANs, subnets, or attachment points change.
 
-On the dataplane, EDA programs **Group-Based Policy (GBP)** on Nokia SR Linux (**26.3+**) on **7220 IXR-D2/D3** leaf platforms (EDA also documents **7220 IXR-D4** for L2-only use cases).
+On the dataplane, EDA programs **Group-Based Policy (GBP)** on Nokia SR Linux (**26.3+**) on **7220 IXR-D2L/D3L** leaf platforms (EDA also documents **7220 IXR-D4** for L2-only use cases).
 
 **EDA references:**
 
@@ -69,7 +71,7 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 
 ![Kubernetes object chain](diagrams/k8s-chain.png){width=6.5in}
 
-![Variant catalog — association and enforcement](diagrams/variant-catalog.png){width=6.5in}
+![Variant catalog — association and enforcement](diagrams/variant-catalog.png){width=8in}
 
 | ID | VirtualNetwork | Association | Enforcement |
 |----|----------------|-------------|-------------|
@@ -90,7 +92,7 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 | **Enforcement** | `ms-policy-vlan` → `serviceTargets.virtualNetworks: [vnet-ms-vlan]`. GBP on the **VirtualNetwork** (L2 edge tagging + L3 IRB forwarding path). |
 | **Service** | Single subnet `172.16.75.0/24`, IRB `172.16.75.254`, VLAN **75**, symmetric IRB (`rfc9135SymmetricMode`). |
 | **Scope (catalog)** | leaf-1/2/3, client1/2/3. |
-| **Status** | Historical **GO** (2026-07). |
+| **Status** | **Validated** |
 
 **What it proves:** GroupTags programmed from **VLAN objects**; east–west filtering on a shared L3 gateway subnet.
 
@@ -103,6 +105,7 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 | **Enforcement** | `ms-policy-bridge` → `virtualNetworks: [vnet-ms-bridge]`. |
 | **Service** | Same subnet pattern as A (`172.16.75.0/24`), VLAN **75**. |
 | **Scope (catalog)** | leaf-5/6/7, client4/5/6. |
+| **Status** | **Validated** |
 
 **What it proves:** Association target type **BridgeInterface** works when named explicitly; selector indirection is unreliable on access subifs.
 
@@ -115,7 +118,7 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 | **Enforcement** | `ms-policy-routed` → `virtualNetworks: [vnet-ms-routed]`. |
 | **Service** | Per-leaf gateways: `172.16.80.1/24`, `.81.1/24`, `.82.1/24`; VLANs **80/81/82**. No shared IRB subnet. |
 | **Scope (catalog)** | leaf-5/6/7. |
-| **Status** | **PARKED** — with policy applied, cross-subnet traffic fails even for explicit Allow rules; likely platform limitation on GBP over routed-interface paths. |
+| **Status** | **Failed** (under investigation) — with policy applied, cross-subnet traffic fails even for explicit Allow rules; likely platform limitation on GBP over routed-interface paths. |
 
 ### 2.7 Variant D — IRB + VLAN association (`vnet-ms-irb`)
 
@@ -126,7 +129,7 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 | **Enforcement** | `ms-policy-irb` → `virtualNetworks: [vnet-ms-irb]`. Filter decision at **IRB**, not L2 VLAN bridge alone. |
 | **Service** | `172.16.85.0/24`, IRB `172.16.85.254`, VLAN **85**. |
 | **Scope (validated)** | **leaf-2=blue**, **leaf-3=green**, **leaf-4=red** — client2/3/4, IPs `172.16.85.2/3/4`. Apply: `variants/_variant-d-leaf234-apply.yaml`. |
-| **Status** | **GO** (2026-08-20). |
+| **Status** | **Validated** (2026-08-20). |
 
 **What it proves:** IRB-level GBP with ingress VLAN tagging; IRB-only association (gateway tag alone) is **insufficient** — client VLAN associations required.
 
@@ -140,7 +143,7 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 | **Service** | `172.16.90.0/24`, IRB `172.16.90.254`, VLAN **90**. |
 | **Scope (validated)** | **leaf-6=blue**, **leaf-7=green**, **leaf-8=red** — client6/7/8, IPs `172.16.90.6/7/8`. Apply: `variants/_variant-e-leaf678-apply.yaml`. |
 | **Extra test** | red → `172.16.91.1` **deny** (dest classified green via static route, red↔green blocked). |
-| **Status** | **GO** (2026-08-20). |
+| **Status** | **Validated** (2026-08-20). Not tested to an actual remote host — `static-remote-green` uses a **blackhole** route to validate prefix tagging behaviour only. |
 
 **What it proves:** GroupTags can bind to **StaticRoute** prefixes, not only VLAN/BI/RI/IRB objects.
 
@@ -153,6 +156,7 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 | **Enforcement** | `ms-policy-enf-router` → **`serviceTargets.routers: [router-ms-enf-router]`** (not `virtualNetworks`). |
 | **Service** | `172.16.100.0/24`, VLAN **100**. |
 | **Scope (catalog)** | leaf-5/6/7. |
+| **Status** | **Not currently validated** |
 
 **What it proves:** Enforcement anchor can be the **router CR** rather than the whole VirtualNetwork.
 
@@ -165,6 +169,7 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 | **Enforcement** | `ms-policy-enf-bd` → **`serviceTargets.bridgeDomains: [bd-ms-enf-bd]`**. |
 | **Service** | VLAN **110**, no L3 gateway on clients. |
 | **Scope (catalog)** | leaf-5/6/7. |
+| **Status** | **Not currently validated** |
 
 **What it proves:** Pure L2 microsegmentation with enforcement on **bridgeDomains**; hosts have no default route.
 
@@ -215,14 +220,18 @@ Each variant has a dedicated `vnet-ms-*` VirtualNetwork. **Variant A example** (
 | IRB | `irb-ms-vlan` | `172.16.75.254/24` |
 | VLANs | `vlan-ms-vlan-red/blue/green` | VLAN **75**, compound `interfaceSelectors` |
 
-**Host route populate** (required for multi-leaf same-subnet):
+**EVPN route advertisement** (required for multi-leaf same-subnet IRB services — replaces legacy `hostRoutePopulate`):
 
 ```yaml
-hostRoutePopulate:
-  dynamic: { populate: true }
-  evpn: { populate: true, datapathProgramming: true }
-  static: { populate: true }
+evpnRouteAdvertisementType:
+  arpDynamic: true
+  arpStatic: true
+  ndDynamic: true
+  ndStatic: true
+  rfc9135SymmetricMode: true
 ```
+
+See `docs/L3-IRB-RFC9135.md` for background. Variant **C** (routed-interface only) and **G** (L2-only) do not use this IRB block.
 
 ### 3.4 MicroSegmentationPolicy
 
@@ -365,7 +374,15 @@ See `variants/README.md` for full catalog. Use scoped apply bundles for D/E only
 
 ## 5. Packet walkthrough (Variant A example)
 
-Other variants use the same GBP matrix; classification and enforcement points differ — see **§2**.
+The steps below apply to **Variant A only** (shared-subnet IRB + VLAN). Other variants use the same GBP **policy matrix** but different classification and enforcement paths — see **§2** and **§6**.
+
+| Variant | Path differs because… |
+|---------|------------------------|
+| **A, B, D, E, F** | L3 IRB or routed handoff; GBP on VirtualNetwork or router |
+| **C** | Per-leaf routed subinterfaces — no shared IRB subnet |
+| **G** | L2-only — no IRB, no default route; GBP on bridge domain only |
+
+For variants without a bridge-domain L3 path, skip steps that reference IRB host routes and describe only the relevant NI (MAC-VRF for **G**, IP-VRF for **C**/**F**).
 
 ![Packet path — Variant A vnet-ms-vlan](diagrams/packet-path.png){width=6.5in}
 
@@ -393,7 +410,7 @@ GBP ACL: blue → green → **Accept**.
 |---------|-------------------------------------|-------------------------|
 | **A** | VLAN objects on edge subifs | VirtualNetwork (L2 tag + L3 IRB path) |
 | **B** | BridgeInterface CRs | VirtualNetwork |
-| **C** | RoutedInterface CRs | VirtualNetwork (parked) |
+| **C** | RoutedInterface CRs | VirtualNetwork — **Failed** (under investigation) |
 | **D** | VLAN (clients) + IRB (gateway) | VirtualNetwork — decision at **IRB** |
 | **E** | VLAN (clients) + StaticRoute (prefix) | VirtualNetwork |
 | **F** | VLAN objects | **Router** CR (`router-ms-enf-router`) |
@@ -464,11 +481,45 @@ kubectl apply -f variants/_variant-e-leaf678-apply.yaml
 | Symptom | Check |
 |---------|--------|
 | Policy on but red↔blue fails | VLAN subif on leaf; parent `eth1` must not hold the IP (use `eth1.<vlan>`) |
-| Tags missing on switch | AssociationPolicy targets; interface `ms-group` + vnet labels |
+| Tags missing on switch | AssociationPolicy targets; interface `ms-group` + vnet labels (see **Verify GroupTags** below) |
 | VNet not Up | `kubectl get virtualnetwork <vn> -n clab-3-tier-leaf-spine-dcgw` |
 | Variant D: gateway OK, all inter-host fails | `ms-assoc-irb` missing VLAN entries — need IRB + all three VLAN associations |
 | Variant E: prefix deny fails | `static-remote-green` present; prefix `172.16.91.0/24` tagged green |
 | 8-leaf scope blowout | Remove `nodeSelectors: [eda.nokia.com/role=leaf]` from MS demo routers |
+
+### Verify GroupTags (EDA + SR Linux)
+
+**EDA — association programmed:**
+
+```bash
+NS=clab-3-tier-leaf-spine-dcgw
+kubectl get associationpolicy ms-assoc-vlan -n $NS -o yaml    # adjust name per variant
+kubectl get associationpolicystate -n $NS
+kubectl get grouptag,grouptagstate -n $NS
+```
+
+**EDA UI:** Microsegmentation → Association Policies → select policy → target status.
+
+**SR Linux — dataplane tags** (after traffic has flowed; replace NI and interface names):
+
+```bash
+# Interface-level GBP tags (operational summary)
+show network-instance router-ms-vlan interfaces
+
+# MAC table tag (L2 / bridge-domain path)
+info from state network-instance bd-ms-vlan bridge-table mac-table mac \
+  group-based-policy-tag
+
+# Route / prefix tag (L3 / static-route path — Variant E)
+info from state network-instance router-ms-static route-table ipv4-unicast route \
+  group-based-policy-tag
+
+# IRB neighbour tag (Variant D gateway / host ARP)
+info from state interface irb-ms-irb subinterface 1 ipv4 arp neighbor \
+  group-based-policy-tag
+```
+
+Use the VirtualNetwork router / bridge-domain names for the variant under test (`router-ms-irb`, `bd-ms-enf-bd`, etc.).
 
 ---
 
@@ -521,12 +572,15 @@ Per-variant purpose, association, enforcement, and scope: **§2.4–§2.10**.
 
 See **`docs/EDA-Microsegmentation-Test-Report.md`** for ping matrices and sign-off status.
 
-| Variant | Last validated | Result |
+| Variant | Last validated | Status |
 |---------|----------------|--------|
-| **D** IRB (leaf-2/3/4) | 2026-08-20 | **GO** |
-| **E** StaticRoute (leaf-6/7/8) | 2026-08-20 | **GO** |
-| **C** RoutedIF | 2026-08-20 | **Parked** |
-| A baseline | 2026-07-31 | GO (historical) |
+| **A** VLAN (leaf-1/2/3) | 2026-07-31 | **Validated** |
+| **B** BridgeInterface (leaf-5/6/7) | 2026-08-20 | **Validated** |
+| **C** RoutedIF (leaf-5/6/7) | 2026-08-20 | **Failed** (under investigation) |
+| **D** IRB (leaf-2/3/4) | 2026-08-20 | **Validated** |
+| **E** StaticRoute (leaf-6/7/8) | 2026-08-20 | **Validated** |
+| **F** Router enforcement | — | **Not currently validated** |
+| **G** BridgeDomain enforcement | — | **Not currently validated** |
 
 Rollout artifacts (gitignored): `docs/tmp/variant-d-leaf234-*`, `docs/tmp/variant-e-leaf678-*`.
 
@@ -543,15 +597,15 @@ Rollout artifacts (gitignored): `docs/tmp/variant-d-leaf234-*`, `docs/tmp/varian
 
 ### 14.2 Variant glossary (A–G)
 
-| ID | One-line summary | Validated scope |
-|----|------------------|-----------------|
-| **A** | VLAN → GroupTag; enforce on VirtualNetwork | leaf-1/2/3 (catalog) |
-| **B** | BridgeInterface → GroupTag (explicit BI names required) | leaf-5/6/7 (catalog) |
-| **C** | RoutedInterface → GroupTag; **parked** | leaf-5/6/7 (catalog) |
-| **D** | IRB gateway tag + VLAN client tags; enforce at IRB | **leaf-2/3/4** — GO |
-| **E** | StaticRoute prefix tag + VLAN client tags | **leaf-6/7/8** — GO |
-| **F** | VLAN tags; enforce on **router** not VirtualNetwork | leaf-5/6/7 (catalog) |
-| **G** | VLAN tags; enforce on **bridgeDomain** (L2 only) | leaf-5/6/7 (catalog) |
+| ID | One-line summary | Status |
+|----|------------------|--------|
+| **A** | VLAN → GroupTag; enforce on VirtualNetwork | **Validated** (leaf-1/2/3) |
+| **B** | BridgeInterface → GroupTag (explicit BI names required) | **Validated** (leaf-5/6/7) |
+| **C** | RoutedInterface → GroupTag | **Failed** (under investigation) |
+| **D** | IRB gateway tag + VLAN client tags; enforce at IRB | **Validated** (leaf-2/3/4) |
+| **E** | StaticRoute prefix tag + VLAN client tags | **Validated** (leaf-6/7/8) |
+| **F** | VLAN tags; enforce on **router** not VirtualNetwork | Not currently validated |
+| **G** | VLAN tags; enforce on **bridgeDomain** (L2 only) | Not currently validated |
 
 Full descriptions: **§2.4–§2.10**. Scope lock: `docs/VARIANT-SCOPE-LOCK.md`.
 
@@ -559,4 +613,4 @@ Full descriptions: **§2.4–§2.10**. Scope lock: `docs/VARIANT-SCOPE-LOCK.md`.
 
 ---
 
-*Document version: August 2026 doc restructure (§2 variants + EDA intro). Repo: https://github.com/dtrichards01/eda-microsegmentation-demo*
+*Document version: August 2026 (Word review — EDA 26.4.2, MS app 6.0.2). Repo: https://github.com/dtrichards01/eda-microsegmentation-demo*
