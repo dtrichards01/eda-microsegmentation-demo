@@ -1,5 +1,7 @@
 # EDA microsegmentation demo (red / blue / green)
 
+**Repo:** https://github.com/dtrichards01/eda-microsegmentation-demo
+
 Standard **VirtualNetwork** services on an EVPN leaf fabric, using the **microsegmentation** app (GBP on SR Linux 26.3+).
 
 ## Policy intent

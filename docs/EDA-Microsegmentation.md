@@ -317,7 +317,91 @@ Microsegmentation uses two independent choices:
 | F | `vnet-ms-enf-router` | VLAN | `routers` |
 | G | `vnet-ms-enf-bd` | VLAN | `bridgeDomains` |
 
-**Port sharing:** Variant A uses leaf-1/2/3 (VLAN **75**); variants B-G use leaf-5/6/7 (VLANs **75, 80/81/82, 85, 90, 100, 110**) on the same `ethernet-1/5` (Dot1q). See physical topology diagram in Ã‚Â§2.
+**Port sharing:** Variant A uses leaf-1/2/3 (VLAN **75**). Scoped validation uses **D** on leaf-2/3/4 (VLAN **85**) and **E** on leaf-6/7/8 (VLAN **90**). Legacy catalog entries for B–G reference leaf-5/6/7 on the same `ethernet-1/5` (Dot1q). See `docs/VARIANT-SCOPE-LOCK.md` for authoritative scope.
+
+### 12.4 Variant descriptions (A–G)
+
+Each variant is a **dedicated** `vnet-ms-*` VirtualNetwork plus matching `ms-assoc-*` and `ms-policy-*` objects. All variants share the same **policy intent** (red↔blue allow, blue↔green allow, red↔green drop, same-group allow, default deny) unless noted. They differ in **where GroupTags are bound** (association) and **where GBP is applied** (enforcement target).
+
+#### Variant A — VLAN association (`vnet-ms-vlan`)
+
+| Item | Detail |
+|------|--------|
+| **Purpose** | Baseline L2 model: classify clients by **VLAN membership** inside the service bridge domain. |
+| **Association** | `ms-assoc-vlan` maps `vlan-ms-vlan-red` / `-blue` / `-green` → red / blue / green. |
+| **Enforcement** | `ms-policy-vlan` → `serviceTargets.virtualNetworks: [vnet-ms-vlan]`. GBP on the VirtualNetwork (MAC-VRF + IRB path). |
+| **Service** | Single subnet `172.16.75.0/24`, IRB `172.16.75.254`, VLAN **75**, symmetric IRB (`rfc9135SymmetricMode`). |
+| **Scope (catalog)** | leaf-1/2/3, client1/2/3. |
+| **What it proves** | GroupTags programmed from **VLAN objects**; east–west filtering on a shared L3 gateway subnet. |
+
+#### Variant B — BridgeInterface association (`vnet-ms-bridge`)
+
+| Item | Detail |
+|------|--------|
+| **Purpose** | Classify at the **BridgeInterface CR** (dot1q subinterface object) instead of the VLAN CR. |
+| **Association** | `ms-assoc-bridge` must use **explicit** `bridgeInterfaces: [bi-red-5, bi-blue-6, bi-green-7]`. Label selectors on parent `Interface` CRs did **not** program GBP on `ethernet-1/5.75` in lab testing. |
+| **Enforcement** | `ms-policy-bridge` → `virtualNetworks: [vnet-ms-bridge]`. |
+| **Service** | Same subnet pattern as A (`172.16.75.0/24`), VLAN **75**. |
+| **Scope (catalog)** | leaf-5/6/7, client4/5/6. |
+| **What it proves** | Association target type **BridgeInterface** works when named explicitly; selector indirection is unreliable on access subifs. |
+
+#### Variant C — RoutedInterface association (`vnet-ms-routed`)
+
+| Item | Detail |
+|------|--------|
+| **Purpose** | Classify at **L3 routed handoff** — each colour gets its own routed subinterface and subnet on the leaf. |
+| **Association** | `ms-assoc-routed` → `ri-red-5`, `ri-blue-6`, `ri-green-7`. |
+| **Enforcement** | `ms-policy-routed` → `virtualNetworks: [vnet-ms-routed]`. |
+| **Service** | Per-leaf gateways: `172.16.80.1/24`, `.81.1/24`, `.82.1/24`; VLANs **80/81/82**. No shared IRB subnet. |
+| **Scope (catalog)** | leaf-5/6/7. |
+| **Status** | **PARKED** in this lab — with policy applied, cross-subnet traffic fails even for explicit Allow rules; likely platform limitation on GBP over routed-interface paths. See `docs/tmp/variant-c-policy-fix-*/SUMMARY.md`. |
+
+#### Variant D — IRB + VLAN association (`vnet-ms-irb`)
+
+| Item | Detail |
+|------|--------|
+| **Purpose** | L3 enforcement at the **IRB gateway** while clients are tagged via VLAN helpers at ingress. |
+| **Association** | `ms-assoc-irb`: `irb-ms-irb` → **gateway**; `vlan-ms-irb-red/blue/green` → red/blue/green. VLAN entries classify **client** traffic; IRB entry classifies the **gateway**. |
+| **Enforcement** | `ms-policy-irb` → `virtualNetworks: [vnet-ms-irb]`. Rules include gateway pairs (red↔gateway, etc.) plus host matrix. Filtering decision at **IRB**, not on L2 VLAN bridge alone. |
+| **Service** | `172.16.85.0/24`, IRB `172.16.85.254`, VLAN **85**, no `nodeSelectors: role=leaf` on router (3-leaf scope via label selectors). |
+| **Scope (validated)** | **leaf-2=blue**, **leaf-3=green**, **leaf-4=red** — client2/3/4, IPs `172.16.85.2/3/4`. Apply: `variants/_variant-d-leaf234-apply.yaml`. |
+| **What it proves** | IRB-level GBP with ingress VLAN tagging; IRB-only association (gateway tag alone) is **insufficient** — client VLAN associations required. |
+
+#### Variant E — StaticRoute + VLAN association (`vnet-ms-static`)
+
+| Item | Detail |
+|------|--------|
+| **Purpose** | Tag a **remote prefix** via StaticRoute association, plus client tagging via VLANs — prefix-based destination classification. |
+| **Association** | `ms-assoc-static`: `static-remote-green` → **green** for prefix `172.16.91.0/24`; VLAN objects → red/blue/green for clients. Static route uses **blackhole** nexthop (no real network — tag anchor only). |
+| **Enforcement** | `ms-policy-static` → `virtualNetworks: [vnet-ms-static]`. Standard host matrix; static route supplies **destination** tag for remote prefix traffic. |
+| **Service** | `172.16.90.0/24`, IRB `172.16.90.254`, VLAN **90**, static route `172.16.91.0/24` on `router-ms-static`. |
+| **Scope (validated)** | **leaf-6=blue**, **leaf-7=green**, **leaf-8=red** — client6/7/8, IPs `172.16.90.6/7/8`. Apply: `variants/_variant-e-leaf678-apply.yaml`. |
+| **Extra test** | red → `172.16.91.1` **deny** (dest classified green via static route, red↔green blocked). |
+| **What it proves** | GroupTags can bind to **StaticRoute** prefixes, not only VLAN/BI/RI/IRB objects. |
+
+#### Variant F — Router enforcement target (`vnet-ms-enf-router`)
+
+| Item | Detail |
+|------|--------|
+| **Purpose** | Same VLAN client tagging as A, but GBP ACL applied via **`serviceTargets.routers`** instead of `virtualNetworks`. |
+| **Association** | `ms-assoc-enf-router` → `vlan-enf-router-red/blue/green`. |
+| **Enforcement** | `ms-policy-enf-router` → `routers: [router-ms-enf-router]`. |
+| **Service** | `172.16.100.0/24`, VLAN **100**. |
+| **Scope (catalog)** | leaf-5/6/7. |
+| **What it proves** | Enforcement anchor can be the **router CR** rather than the whole VirtualNetwork. |
+
+#### Variant G — BridgeDomain enforcement target (`vnet-ms-enf-bd`)
+
+| Item | Detail |
+|------|--------|
+| **Purpose** | **L2-only** service — no IRB/router; GBP on the **bridge domain** (MAC-VRF). |
+| **Association** | `ms-assoc-enf-bd` → `vlan-enf-bd-red/blue/green`. |
+| **Enforcement** | `ms-policy-enf-bd` → `bridgeDomains: [bd-ms-enf-bd]`. |
+| **Service** | VLAN **110**, no L3 gateway on clients. |
+| **Scope (catalog)** | leaf-5/6/7. |
+| **What it proves** | Pure L2 microsegmentation with enforcement on **bridgeDomains**; hosts have no default route. |
+
+**Scope lock:** Never span all eight leaves in one `vnet-ms-*`. Authoritative mapping: `docs/VARIANT-SCOPE-LOCK.md`.
 
 ---
 
@@ -331,19 +415,24 @@ Microsegmentation uses two independent choices:
 - `AssociationPolicy` translates those resource targets into `GroupTag` identities used by GBP.
 - `MicroSegmentationPolicy` enforces the matrix with allow/deny entries on defined `serviceTargets`: `virtualNetworks`, `routers`, or `bridgeDomains`.
 
-### 14.2 Variant glossary (A-G)
+### 14.2 Variant glossary (A–G)
 
-- **A**: VLAN targets, enforced on `virtualNetworks` (`vnet-ms-vlan`), tested on leaf-1/2/3.
-- **B**: BridgeInterface targets, enforced on `virtualNetworks` (`vnet-ms-bridge`), tested on leaf-5/6/7.
-  - **Lab note:** `bridgeInterfaceSelectors` on parent Interface labels did not program GBP tags on `ethernet-1/5.75`. Explicit `bridgeInterfaces` in `ms-assoc-bridge` (`bi-red-5`, `bi-blue-6`, `bi-green-7`) are required for leaf5/6/7 and client5/6/7 mapping. Reference: `docs/manifests/ms-assoc-bridge-patch.yaml`.
+Short index — full descriptions in **§12.4**.
 
-- **C**: RoutedInterface targets, enforced on `virtualNetworks` (`vnet-ms-routed`), tested on leaf-5/6/7.
-- **D**: IRB-focused segmentation (`gateway` + endpoint groups), enforced on `virtualNetworks` (`vnet-ms-irb`), tested on **leaf-2=blue, leaf-3=green, leaf-4=red**.
-- **E**: StaticRoute + segmentation checks, enforced on `virtualNetworks` (`vnet-ms-static`), tested on **leaf-6=blue, leaf-7=green, leaf-8=red**.
-- **F**: `router` serviceTarget enforcement (`router-ms-enf-router`) with VLAN association, tested on leaf-5/6/7.
-- **G**: `bridgeDomain` serviceTarget enforcement (`bd-ms-enf-bd`, L2) with VLAN association, tested on leaf-5/6/7.
+| ID | One-line summary | Validated scope |
+|----|------------------|-----------------|
+| **A** | VLAN → GroupTag; enforce on VirtualNetwork | leaf-1/2/3 (catalog) |
+| **B** | BridgeInterface → GroupTag (explicit BI names required) | leaf-5/6/7 (catalog) |
+| **C** | RoutedInterface → GroupTag; **parked** (GBP on routed path broken) | leaf-5/6/7 (catalog) |
+| **D** | IRB gateway tag + VLAN client tags; enforce at IRB | **leaf-2/3/4** — GO |
+| **E** | StaticRoute prefix tag + VLAN client tags | **leaf-6/7/8** — GO |
+| **F** | VLAN tags; enforce on **router** not VirtualNetwork | leaf-5/6/7 (catalog) |
+| **G** | VLAN tags; enforce on **bridgeDomain** (L2 only) | leaf-5/6/7 (catalog) |
 
-**Scope:** no across-DC test path is implemented yet; validation currently covers the listed leaf sets only.
+- **B lab note:** `bridgeInterfaceSelectors` on parent Interface labels did not program GBP on `ethernet-1/5.75`. Use explicit `bridgeInterfaces` in `ms-assoc-bridge`. See `docs/manifests/ms-assoc-bridge-patch.yaml`.
+- **D/E:** See `variants/_variant-d-leaf234-apply.yaml` and `variants/_variant-e-leaf678-apply.yaml` for scoped apply bundles.
+
+**Scope:** three leaves maximum per variant; see `docs/VARIANT-SCOPE-LOCK.md`.
 
 ## 13. Test results
 
