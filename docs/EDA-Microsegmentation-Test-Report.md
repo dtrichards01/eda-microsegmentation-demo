@@ -1,246 +1,214 @@
 # EDA Microsegmentation — Test Report
 
-**Date:** 2026-07-31  
+**Last updated:** 2026-08-20  
 **Lab:** `3-tier-leaf-spine-dcgw` (clab on WSL)  
 **EDA:** `kind-eda-demo-wsl2` — https://127.0.0.1:9443  
 **Namespace:** `clab-3-tier-leaf-spine-dcgw`  
-**SRL:** 26.3.1 (IXR-D2/D3/D4)  
+**Repo:** https://github.com/dtrichards01/eda-microsegmentation-demo  
 **Policy intent (all variants):** red↔blue allow, blue↔green allow, red↔green drop, same-group allow, implicit default deny  
 
 ![Policy intent](diagrams/policy-rules.png){width=6.5in}
 
-All tests target **dedicated `vnet-ms-*` services** (variants A–G).
+**Scope authority:** `docs/VARIANT-SCOPE-LOCK.md` — max **3 leaves** per `vnet-ms-*`; never span all eight leaves.
 
 ---
 
-## 1. Executive summary
+## 1. Executive summary (2026-08-20)
 
-Automated ping tests for variants **A–G** using Dot1q on `eth1.101`–`eth1.108`. Variant **A** uses dedicated service `vnet-ms-vlan`.
+| Variant | Scope | Association | Result | Notes |
+|---------|-------|-------------|--------|-------|
+| **D** IRB | leaf-2/3/4 | IRB + VLAN helpers | **GO** | Full GBP matrix after 4-entry `ms-assoc-irb` |
+| **E** StaticRoute | leaf-6/7/8 | StaticRoute + VLAN | **GO** | Includes red→`172.16.91.1` static-prefix deny |
+| **C** RoutedIF | leaf-5/6/7 | RoutedInterface | **PARKED** | Policy on → all cross-subnet fails (platform?) |
+| **A** VLAN | leaf-1/2/3 | VLAN | **GO** (historical) | July 2026 baseline |
+| **B, F, G** | catalog | various | **Not re-validated** | See §6 historical run |
 
-| Result class | Outcome |
-|--------------|---------|
-| Client VLAN / IP configuration | **PASS** |
-| Variant A (`vnet-ms-vlan`) policy | red→blue, blue→green **allow**; red→green **drop** (when fabric Up) |
-| Variants B–G | See per-variant sections |
+**Key findings (Aug 2026):**
 
-**Lab notes:** compound VLAN `interfaceSelectors`; flush parent `eth1` before Dot1q subifs; ASCII router descriptions.
+1. **Variant D** requires **both** `irb-ms-irb`→gateway **and** VLAN→red/blue/green in `ms-assoc-irb`. IRB-only association blocks all inter-host traffic; gateway ping still works.
+2. **Variant E** tags `172.16.91.0/24` green via `static-remote-green` (blackhole); client tags via VLAN; standard host matrix + prefix deny validated.
+3. **Never** use `nodeSelectors: [eda.nokia.com/role=leaf]` on MS demo routers — causes 8-leaf scope blowout.
+4. **Never** apply full `variants/edge-interfaces-dot1q.yaml` — use scoped label snippets only.
 
-Raw JSON: `test-results/test-results-full-2026-07-31-v3.json`
-
-**Word:** `docs/EDA-Microsegmentation-Test-Report.docx`
+Apply bundles: `variants/_variant-d-leaf234-apply.yaml`, `variants/_variant-e-leaf678-apply.yaml`.
 
 ---
 
-## 2. Test environment
+## 2. Test environment (current)
 
-### Clab topology (client ↔ leaf)
+### Scoped client ↔ leaf mapping (validated)
 
-![Test topology — client ↔ leaf mapping](diagrams/client-leaf.png){width=6.5in}
+| Phase | Client | Leaf | Colour | Interface | Subnet / VLAN |
+|-------|--------|------|--------|-----------|---------------|
+| **D** | client2 | leaf-2 | blue | `eth1.85` | `172.16.85.2/24` |
+| **D** | client3 | leaf-3 | green | `eth1.85` | `172.16.85.3/24` |
+| **D** | client4 | leaf-4 | red | `eth1.85` | `172.16.85.4/24` |
+| **E** | client6 | leaf-6 | blue | `eth1.90` | `172.16.90.6/24` |
+| **E** | client7 | leaf-7 | green | `eth1.90` | `172.16.90.7/24` |
+| **E** | client8 | leaf-8 | red | `eth1.90` | `172.16.90.8/24` |
 
-| Client | Leaf | MS group (test) |
-|--------|------|-----------------|
-| client1 | leaf-1 | red |
-| client2 | leaf-2 | blue |
-| client3 | leaf-3 | green |
-| client4 | leaf-4 | red |
-| client5 | leaf-5 | blue |
-| client6 | leaf-8 | green |
+Gateways: D `172.16.85.254`, E `172.16.90.254`. Client IP last octet = client number.
 
-### Variant catalog (association + enforcement)
+Docker container names: `clientN` (not `clab-*-clientN`) in WSL clab.
 
-| ID | VLAN | VirtualNetwork | AssociationPolicy | MicroSegmentationPolicy | Association target | Enforcement target |
-|----|------|----------------|-------------------|-------------------------|--------------------|--------------------|
-| A | 101 | `vnet-ms-vlan` | `ms-assoc-vlan` | `ms-policy-vlan` | VLAN | `virtualNetworks` |
-| B | 102 | `vnet-ms-bridge` | `ms-assoc-bridge` | `ms-policy-bridge` | BridgeInterface | `virtualNetworks` |
-| C | 103 | `vnet-ms-routed` | `ms-assoc-routed` | `ms-policy-routed` | RoutedInterface | `virtualNetworks` |
-| D | 104 | `vnet-ms-irb` | `ms-assoc-irb` | `ms-policy-irb` | IRBInterface + VLAN helpers | `virtualNetworks` |
-| E | 106 | `vnet-ms-static` | `ms-assoc-static` | `ms-policy-static` | StaticRoute + VLAN | `virtualNetworks` |
-| F | 107 | `vnet-ms-enf-router` | `ms-assoc-enf-router` | `ms-policy-enf-router` | VLAN | `routers` |
-| G | 108 | `vnet-ms-enf-bd` | `ms-assoc-enf-bd` | `ms-policy-enf-bd` | VLAN | `bridgeDomains` |
+### Variant catalog (Dot1q VLAN IDs — current manifests)
 
-### EDA state at final test time
-
-| VirtualNetwork | operationalState | numNodes | numSubinterfaces |
-|----------------|------------------|----------|------------------|
-| `vnet-ms-vlan` | Up | 3 | 3 |
-| `vnet-ms-bridge` | Up | 3 | 3 |
-| `vnet-ms-routed` | Up | 3 | 0 |
-| `vnet-ms-irb` | Up | 3 | 3 |
-| `vnet-ms-static` | Up | 3 | 3 |
-| `vnet-ms-enf-router` | Up | 3 | 3 |
-| `vnet-ms-enf-bd` | Up | 3 | 3 |
-
-Edge interfaces: `encapType: Dot1q` on `leaf-{1,2,3,4,5,8}-ethernet-1-5`.
+| ID | VLAN | VirtualNetwork | AssociationPolicy | MicroSegmentationPolicy |
+|----|------|----------------|-------------------|-------------------------|
+| A | 75 | `vnet-ms-vlan` | `ms-assoc-vlan` | `ms-policy-vlan` |
+| B | 75 | `vnet-ms-bridge` | `ms-assoc-bridge` | `ms-policy-bridge` |
+| C | 80/81/82 | `vnet-ms-routed` | `ms-assoc-routed` | `ms-policy-routed` |
+| D | 85 | `vnet-ms-irb` | `ms-assoc-irb` | `ms-policy-irb` |
+| E | 90 | `vnet-ms-static` | `ms-assoc-static` | `ms-policy-static` |
+| F | 100 | `vnet-ms-enf-router` | `ms-assoc-enf-router` | `ms-policy-enf-router` |
+| G | 110 | `vnet-ms-enf-bd` | `ms-assoc-enf-bd` | `ms-policy-enf-bd` |
 
 ---
 
 ## 3. Test method
 
-1. **Tool:** `scripts/run-ms-tests.py` — configures `eth1.<vlan>` (flushes parent `eth1`), waits 3s, runs `ping -c 3`.
-2. **Pass criteria:** Allow = 0% loss; Drop = 100% loss or unreachable.
-3. **Cases per variant:** red→blue (allow), red→green (drop), blue→green (drop), red→self (allow); plus variant-specific (gateway IRB, static prefix).
+1. **Labels:** leaf-scoped Interface CR labels (`variants/labels-vnet-ms-irb.yaml` or `labels-vnet-ms-static.yaml`).
+2. **Apply:** scoped apply bundle (not full `virtualnetworks.yaml` without scope review).
+3. **Pre-apply gate:** `kubectl get virtualnetwork <vn> -o jsonpath='{.status.nodes}'` ⊆ allowed leaves (3 max).
+4. **Clients:** `scripts/configure-client-ms-eth1.py --variant D|E --apply` or manual `eth1.<vlan>`.
+5. **Ping:** `docker exec clientN ping -I eth1.<vlan> -c 3 -W 2 <dest>`.
+6. **Pass criteria:** Allow = 0% loss; Drop = 100% loss.
+
+Automated: `python3 scripts/run-ms-tests.py D E`
 
 ---
 
-## 4. Results by variant
+## 4. Results — Variant D (2026-08-20, **GO**)
 
-### Variant A — VLAN association (`vnet-ms-vlan`, VLAN 101)
+**Service:** `vnet-ms-irb` on **leaf-2, leaf-3, leaf-4** only (`numNodes: 3`, `operationalState: Up`).
 
-**Association:** `vlan-ms-vlan-red` / `vlan-ms-vlan-blue` / `vlan-ms-vlan-green` → `ms-assoc-vlan`  
-**Enforcement:** `ms-policy-vlan` on `virtualNetworks`  
-**EDA:** Up, 6 nodes, 6 subinterfaces  
-**Clients:** client1 (red), client2 (blue), client3 (green)
+**Association (`ms-assoc-irb`):**
 
-| Test | From → To | Expected | Ping | Result |
-|------|-----------|----------|------|--------|
-| red→blue | client1 → 172.16.101.2 | Allow | 0% loss | **PASS** |
-| red→green | client1 → 172.16.101.4 | Drop | 100% loss | **PASS** |
-| blue→green | client2 → 172.16.101.4 | Drop | 100% loss | **PASS** |
-| red→self | client1 → 172.16.101.1 | Allow | 0% loss | **PASS** |
+| Target | GroupTag |
+|--------|----------|
+| `irb-ms-irb` | gateway |
+| `vlan-ms-irb-red` | red |
+| `vlan-ms-irb-blue` | blue |
+| `vlan-ms-irb-green` | green |
 
-**Policy verified:** GBP allow red↔blue and drop red↔green on cross-leaf traffic.
+**Enforcement:** `ms-policy-irb` → `virtualNetworks: [vnet-ms-irb]`. L3 decisions at IRB; VLAN entries classify clients at ingress.
 
----
+| Test | From → To | Expected | Result |
+|------|-----------|----------|--------|
+| red → blue | client4 → `172.16.85.2` | Allow | **PASS** (3/3) |
+| red → green | client4 → `172.16.85.3` | Drop | **PASS** (0/3) |
+| blue → green | client2 → `172.16.85.3` | Allow | **PASS** (3/3) |
+| blue → red | client2 → `172.16.85.4` | Allow | **PASS** (3/3) |
+| green → blue | client3 → `172.16.85.2` | Allow | **PASS** (3/3) |
+| green → red | client3 → `172.16.85.4` | Drop | **PASS** (0/3) |
+| → gateway | all → `172.16.85.254` | Allow | **PASS** (3/3 each) |
 
-### Variant B — BridgeInterface (`vnet-ms-bridge`, VLAN 102)
-
-**Association:** `bi-red-4`, `bi-blue-5`, `bi-green-8` → `ms-assoc-bridge`  
-**Enforcement:** `ms-policy-bridge` on `virtualNetworks`  
-**EDA:** Up, 3 nodes, 3 subinterfaces  
-**Clients:** client4, client5, client6
-
-| Test | From → To | Expected | Ping | Result |
-|------|-----------|----------|------|--------|
-| red→blue | client4 → 172.16.102.2 | Allow | 100% loss | **FAIL** (no EVPN host route) |
-| red→green | client4 → 172.16.102.4 | Drop | 100% loss | Inconclusive |
-| blue→green | client5 → 172.16.102.4 | Drop | 100% loss | Inconclusive |
-| red→self | client4 → 172.16.102.1 | Allow | 0% loss | **PASS** |
-
-**Note:** Gateway `172.16.102.254` reachable from client4; local MAC learned with GBP tag red; remote EVPN MACs not present on leaf-4.
+**Failure mode (earlier same day):** IRB-only association (gateway entry without VLAN helpers) → all inter-host ALLOW paths failed; gateway ping passed. Fixed by restoring 4-entry association.
 
 ---
 
-### Variant C — RoutedInterface (`vnet-ms-routed`, VLAN 103)
+## 5. Results — Variant E (2026-08-20, **GO**)
 
-**Association:** `ri-red-4`, `ri-blue-8`, `ri-green-5` → `ms-assoc-routed`  
-**Enforcement:** `ms-policy-routed` on `virtualNetworks`  
-**EDA:** Up, 3 nodes, **0 subinterfaces** (routed handoff — no VLAN subifs expected)  
-**Clients:** client4 (.103.10), client5 (.105.10), client6 (.104.10)
+**Service:** `vnet-ms-static` on **leaf-6, leaf-7, leaf-8** only (`numNodes: 3`, `operationalState: Up`).
 
-| Test | From → To | Expected | Ping | Result |
-|------|-----------|----------|------|--------|
-| red→blue | client4 → 172.16.105.10 | Allow | 100% loss | **FAIL** (routing) |
-| red→green | client4 → 172.16.104.10 | Drop | 100% loss | Inconclusive |
-| blue→green | client5 → 172.16.104.10 | Drop | 100% loss | Inconclusive |
-| red→self | client4 → 172.16.103.10 | Allow | 0% loss | **PASS** |
+**Association (`ms-assoc-static`):**
 
----
+| Target | GroupTag |
+|--------|----------|
+| `static-remote-green` | green (prefix `172.16.91.0/24`, blackhole) |
+| `vlan-ms-static-red` | red |
+| `vlan-ms-static-blue` | blue |
+| `vlan-ms-static-green` | green |
 
-### Variant D — IRB association (`vnet-ms-irb`, VLAN 104)
+**Enforcement:** `ms-policy-static` → `virtualNetworks: [vnet-ms-static]`.
 
-**Association:** `irb-ms-irb` (gateway) + VLAN client helpers → `ms-assoc-irb`  
-**Enforcement:** `ms-policy-irb` on `virtualNetworks`  
-**EDA:** Up, 3 nodes, 3 subinterfaces  
-**Subnet:** 172.16.105.0/24
+| Test | From → To | Expected | Result |
+|------|-----------|----------|--------|
+| red → blue | client8 → `172.16.90.6` | Allow | **PASS** (3/3) |
+| red → green | client8 → `172.16.90.7` | Drop | **PASS** (0/3) |
+| blue → green | client6 → `172.16.90.7` | Allow | **PASS** (3/3) |
+| blue → red | client6 → `172.16.90.8` | Allow | **PASS** (3/3) |
+| green → blue | client7 → `172.16.90.6` | Allow | **PASS** (3/3) |
+| green → red | client7 → `172.16.90.8` | Drop | **PASS** (0/3) |
+| blue → gateway | client6 → `172.16.90.254` | Allow | **PASS** (3/3) |
+| red → static prefix | client8 → `172.16.91.1` | Drop | **PASS** (0/3) |
 
-| Test | From → To | Expected | Ping | Result |
-|------|-----------|----------|------|--------|
-| red→blue | client4 → 172.16.105.2 | Allow | 100% loss | **FAIL** (routing) |
-| red→green | client4 → 172.16.105.4 | Drop | 100% loss | Inconclusive |
-| blue→green | client5 → 172.16.105.4 | Drop | 100% loss | Inconclusive |
-| red→self | client4 → 172.16.105.1 | Allow | 0% loss | **PASS** |
-| red→gateway IRB | client4 → 172.16.105.254 | Allow | 0% loss | **PASS** |
+Static-route test: destination tagged **green** via `static-remote-green`; red↔green policy drops even though prefix is blackhole.
 
 ---
 
-### Variant E — StaticRoute (`vnet-ms-static`, VLAN 106)
+## 6. Variant C — parked (2026-08-20)
 
-**Association:** `static-remote-green` + VLAN clients → `ms-assoc-static`  
-**Enforcement:** `ms-policy-static` on `virtualNetworks`  
-**EDA:** Up, 3 nodes, 3 subinterfaces  
-**Subnet:** 172.16.106.0/24
+**Symptom:** Phase 1 (no `ms-policy-routed`) — cross-subnet pings pass. Phase 2 (policy on) — **all** cross-subnet fails, including red→blue Allow.
 
-| Test | From → To | Expected | Ping | Result |
-|------|-----------|----------|------|--------|
-| red→blue | client4 → 172.16.106.2 | Allow | 100% loss | **FAIL** (routing) |
-| red→green | client4 → 172.16.106.4 | Drop | 100% loss | Inconclusive |
-| blue→green | client5 → 172.16.106.4 | Drop | 100% loss | Inconclusive |
-| red→self | client4 → 172.16.106.1 | Allow | 0% loss | **PASS** |
-| red→static prefix | client4 → 172.16.205.1 | Drop | 100% loss | **PASS** (blackhole static) |
+**Conclusion:** Not fixable with YAML alone in this lab; reported as likely platform limitation on routed-interface GBP. Do not use for sign-off until Nokia/platform fix.
+
+Details: `docs/tmp/variant-c-policy-fix-20260820-120141/SUMMARY.md`
 
 ---
 
-### Variant F — Enforcement router (`vnet-ms-enf-router`, VLAN 107)
+## 7. Summary matrix (Aug 2026 validation)
 
-**Association:** VLAN → `ms-assoc-enf-router`  
-**Enforcement:** `ms-policy-enf-router` on **`routers`** (`router-ms-enf-router`)  
-**EDA:** Up, 3 nodes, 3 subinterfaces  
-**Subnet:** 172.16.107.0/24
-
-| Test | From → To | Expected | Ping | Result |
-|------|-----------|----------|------|--------|
-| red→blue | client4 → 172.16.107.2 | Allow | 100% loss | **FAIL** (routing) |
-| red→green | client4 → 172.16.107.4 | Drop | 100% loss | Inconclusive |
-| blue→green | client5 → 172.16.107.4 | Drop | 0% loss | **FAIL** (policy not enforced) |
-| red→self | client4 → 172.16.107.1 | Allow | 0% loss | **PASS** |
+| Variant | Scope | EDA Up (3 nodes) | GBP matrix | Policy verified? |
+|---------|-------|------------------|------------|------------------|
+| **D** IRB | leaf-2/3/4 | Yes | **Pass** | **Yes** |
+| **E** StaticRoute | leaf-6/7/8 | Yes | **Pass** | **Yes** |
+| **C** RoutedIF | leaf-5/6/7 | Yes | Fail (with policy) | **Parked** |
+| A–B, F–G | catalog | — | Not re-run Aug 2026 | See §8 |
 
 ---
 
-### Variant G — Enforcement BD L2 (`vnet-ms-enf-bd`, VLAN 108)
+## 8. Historical run (2026-07-31) — superseded for D/E
 
-**Association:** VLAN → `ms-assoc-enf-bd`  
-**Enforcement:** `ms-policy-enf-bd` on **`bridgeDomains`** (`bd-ms-enf-bd`)  
-**EDA:** Up, 3 nodes, 3 subinterfaces  
-**L2 only** — clients have no default route
+An earlier automated run used VLAN **101–108** on `eth1.101`–`eth1.108`, different client/leaf mapping, and reported **FAIL** for Variants D and E (routing/scope issues). That run predates:
 
-| Test | From → To | Expected | Ping | Result |
-|------|-----------|----------|------|--------|
-| red→blue | client4 → 172.16.108.2 | Allow | 100% loss | **FAIL** (L2-only / no L3 path) |
-| red→green | client4 → 172.16.108.4 | Drop | 100% loss | Inconclusive |
-| blue→green | client5 → 172.16.108.4 | Drop | 100% loss | Inconclusive |
-| red→self | client4 → 172.16.108.1 | Allow | 0% loss | **PASS** |
+- Scoped 3-leaf apply bundles
+- Correct Dot1q VLAN **85** (D) and **90** (E)
+- 4-entry `ms-assoc-irb` (VLAN + IRB)
+- Removal of `nodeSelectors: role=leaf` on MS routers
 
----
+Raw JSON (historical): `test-results/test-results-full-2026-07-31-v3.json`
 
-## 5. Summary matrix
-
-| Variant | Association | Enforcement | EDA Up | Self | red→blue | red→green drop | Policy verified? |
-|---------|-------------|-------------|--------|------|----------|----------------|------------------|
-| A VLAN | VLAN | virtualNetworks | Yes | Pass | **Pass** | **Pass** | **Yes** |
-| B BridgeIF | BridgeInterface | virtualNetworks | Yes | Pass | Fail | Inconclusive | No |
-| C RoutedIF | RoutedInterface | virtualNetworks | Yes* | Pass | Fail | Inconclusive | No |
-| D IRB | IRBInterface | virtualNetworks | Yes | Pass | Fail | Inconclusive | No |
-| E StaticRoute | StaticRoute | virtualNetworks | Yes | Pass | Fail | Inconclusive | Partial (static blackhole) |
-| F Router enf | VLAN | routers | Yes | Pass | Fail | Fail (blue→green allowed) | No |
-| G BD enf | VLAN | bridgeDomains | Yes | Pass | Fail | Inconclusive | No |
-
-\*C: Up with 0 VLAN subinterfaces (by design for routed-interface handoff).
+| Variant | Jul 2026 result | Aug 2026 status |
+|---------|-----------------|-----------------|
+| A VLAN | **Pass** | Still valid baseline |
+| B BridgeIF | Fail (EVPN host route) | Not re-tested |
+| C RoutedIF | Fail | **Parked** (confirmed Aug) |
+| D IRB | Fail | **GO** (scoped re-test) |
+| E StaticRoute | Partial | **GO** (scoped re-test) |
+| F, G | Fail | Not re-tested |
 
 ---
 
-## 6. Conclusions
-
-1. **All seven association/enforcement options are deployed and tested** — each variant has AssociationPolicy + MicroSegmentationPolicy CRs and a dedicated VirtualNetwork.
-2. **Variant A (baseline VLAN + virtualNetworks)** fully validates the red/blue/green GBP intent after Dot1q migration and client parent-interface fix.
-3. **Variants B–G** need additional fabric work: EVPN host-route population across leaves for multi-subnet services, routed-interface datapath for C, and router-target ACL verification for F.
-4. **EDA provisioning pitfalls:** use compound `interfaceSelectors`; flush parent `eth1` before Dot1q subinterfaces; dedicated `vnet-ms-*` per variant.
-
----
-
-## 7. How to reproduce
+## 9. How to reproduce (current)
 
 ```bash
-# On clab/docker host (WSL) — containers named client1..client6
-python3 scripts/run-ms-tests.py > test-results/test-results-$(date +%F).json
+cd /mnt/c/Users/darrenri/Documents/eda-microsegmentation-demo
 
-# Single variant
-python3 scripts/configure-client-ms-eth1.py --variant A --apply
-docker exec client1 ping -c 3 172.16.101.2   # expect OK
-docker exec client1 ping -c 3 172.16.101.4   # expect FAIL (GBP drop)
+# Variant D
+kubectl apply -f variants/labels-vnet-ms-irb.yaml
+kubectl apply -f variants/_variant-d-leaf234-apply.yaml
+python3 scripts/configure-client-ms-eth1.py --variant D --apply
+python3 scripts/run-ms-tests.py D
+
+# Variant E
+kubectl apply -f variants/labels-vnet-ms-static.yaml
+kubectl apply -f variants/_variant-e-leaf678-apply.yaml
+python3 scripts/configure-client-ms-eth1.py --variant E --apply
+python3 scripts/run-ms-tests.py E
 ```
-
-Use `--clab-name clab-3-tier-leaf-spine-dcgw` if Docker containers use the clab prefix.
 
 ---
 
-*Report generated from live lab execution on 2026-07-31 (final run v3).*
+## 10. Conclusions
+
+1. **Variants D and E** validate the full red/blue/green GBP intent on **scoped 3-leaf** deployments (Aug 2026).
+2. **Association vs policy:** Association classifies (VLAN, IRB, StaticRoute); policy enforces between GroupTags. Missing VLAN associations on D blocks inter-host traffic even when gateway works.
+3. **Variant C** remains **parked** for routed-interface GBP.
+4. **Operational rules:** 3-leaf max, no `role=leaf` router selectors, scoped label files only, pre-apply `status.nodes` gate.
+
+Architecture and per-variant design: `docs/EDA-Microsegmentation.md` §12.4.
+
+---
+
+*Report updated 2026-08-20 after scoped Variant D/E validation. Supersedes July 2026 sections for D and E.*

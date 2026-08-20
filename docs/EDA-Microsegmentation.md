@@ -183,7 +183,14 @@ Gateway: `172.16.75.254` on VLAN **75** (`eth1.75`).
 
 Interface labels: `eda.nokia.com/ms-group=red|blue|green` and `eda.nokia.com/vnet-ms-vlan=bd-ms-vlan`.
 
-Variants **B-G** use client4/5/6 on leaf-5/6/7 only (same-leaf-set validation; no cross-DC tests).
+**Scoped validation (Aug 2026)** — see `docs/VARIANT-SCOPE-LOCK.md`:
+
+| Variant | Leaves | Clients | VLAN | Subnet |
+|---------|--------|---------|------|--------|
+| **D** | leaf-2=blue, leaf-3=green, leaf-4=red | client2/3/4 | 85 | `172.16.85.0/24` |
+| **E** | leaf-6=blue, leaf-7=green, leaf-8=red | client6/7/8 | 90 | `172.16.90.0/24` |
+
+Legacy catalog variants **B–G** reference leaf-5/6/7 in `variants/README.md`; use scoped apply bundles for D/E only.
 
 ---
 
@@ -411,7 +418,7 @@ Each variant is a **dedicated** `vnet-ms-*` VirtualNetwork plus matching `ms-ass
 ### 14.1 Architecture flow (operator view)
 
 - `VirtualNetwork` builds the service path with `bridgeDomain`/`vlan` at the edge and `irbInterface`/`routedInterface`/`router` for L3 handling.
-- Interface labels are applied on edge Interface CRs in `variants/edge-interfaces-dot1q.yaml` (notably `eda.nokia.com/ms-group` plus `eda.nokia.com/vnet-ms-*`).
+- Interface labels are applied on edge Interface CRs via **scoped label snippets** (`variants/labels-vnet-ms-*.yaml`) — never the full `edge-interfaces-dot1q.yaml` (labels all eight leaves).
 - `AssociationPolicy` translates those resource targets into `GroupTag` identities used by GBP.
 - `MicroSegmentationPolicy` enforces the matrix with allow/deny entries on defined `serviceTargets`: `virtualNetworks`, `routers`, or `bridgeDomains`.
 
@@ -436,11 +443,20 @@ Short index — full descriptions in **§12.4**.
 
 ## 13. Test results
 
-See `docs/EDA-Microsegmentation-Test-Report.md` for automated ping results per variant.
+See **`docs/EDA-Microsegmentation-Test-Report.md`** for ping matrices and sign-off status.
+
+| Variant | Last validated | Result |
+|---------|----------------|--------|
+| **D** IRB (leaf-2/3/4) | 2026-08-20 | **GO** |
+| **E** StaticRoute (leaf-6/7/8) | 2026-08-20 | **GO** |
+| **C** RoutedIF | 2026-08-20 | **Parked** |
+| A baseline | 2026-07-31 | GO (historical) |
+
+Rollout artifacts (gitignored): `docs/tmp/variant-d-leaf234-*`, `docs/tmp/variant-e-leaf678-*`.
 
 ---
 
-*Document version: dedicated vnet-ms-* services, July 2026*
+*Document version: scoped D/E validation, August 2026. Repo: https://github.com/dtrichards01/eda-microsegmentation-demo*
 
 
 
