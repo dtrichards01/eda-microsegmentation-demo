@@ -8,11 +8,20 @@ Standard **VirtualNetwork** services on an EVPN leaf fabric, using the **microse
 
 | Traffic | Result |
 |---------|--------|
-| red â†” red, blue â†” blue, green â†” green | Allow |
-| red â†” blue | Allow |
-| blue â†” green | Allow |
-| red â†” green | **Drop** |
+| red ↔ red, blue ↔ blue, green ↔ green | Allow |
+| red ↔ blue | Allow |
+| blue ↔ green | Allow |
+| red ↔ green | **Drop** |
 | Any other cross-group pair | Drop (implicit default deny) |
+
+## Documentation
+
+| Doc | Content |
+|-----|---------|
+| **[docs/EDA-Microsegmentation.md](docs/EDA-Microsegmentation.md)** | EDA microsegmentation intro, **§2 per-variant guide (A–G)**, CR reference, deploy |
+| **[docs/EDA-Microsegmentation-Test-Report.md](docs/EDA-Microsegmentation-Test-Report.md)** | Ping matrices, sign-off (D/E GO Aug 2026) |
+| **[docs/VARIANT-SCOPE-LOCK.md](docs/VARIANT-SCOPE-LOCK.md)** | Authoritative leaf/client scope (max 3 leaves) |
+| **[variants/README.md](variants/README.md)** | YAML catalog and apply files |
 
 ## Prerequisites
 
@@ -29,55 +38,37 @@ Change `namespace: clab-3-tier-leaf-spine-dcgw` in YAML if your clab namespace d
 ```bash
 cd variants
 bash apply-all.sh      # vnet-ms-* + policies
-bash apply-dot1q.sh    # edge Dot1q + labels
+bash apply-dot1q.sh    # edge Dot1q + labels (catalog only — see scope lock for D/E)
 ```
 
-## Variant catalog (dedicated services only)
+## Variant catalog (summary)
 
 | ID | VirtualNetwork | Association | Enforcement |
 |----|----------------|-------------|-------------|
 | A | `vnet-ms-vlan` | VLAN | `virtualNetworks` |
 | B | `vnet-ms-bridge` | BridgeInterface | `virtualNetworks` |
 | C | `vnet-ms-routed` | RoutedInterface | `virtualNetworks` |
-| D | `vnet-ms-irb` | IRBInterface | `virtualNetworks` |
-| E | `vnet-ms-static` | StaticRoute | `virtualNetworks` |
+| D | `vnet-ms-irb` | IRB + VLAN | `virtualNetworks` |
+| E | `vnet-ms-static` | StaticRoute + VLAN | `virtualNetworks` |
 | F | `vnet-ms-enf-router` | VLAN | `routers` |
 | G | `vnet-ms-enf-bd` | VLAN | `bridgeDomains` |
 
-Full matrix: ariants/README.md.
-## Architecture + Variant Glossary
+Per-variant purpose and enforcement points: **docs/EDA-Microsegmentation.md §2**.
 
-### Architecture flow (operator view)
-
-- `VirtualNetwork` defines the service chain: `bridgeDomain`/`vlan` for L2 edge, optional `irbInterface` + `routedInterface`, and `router` for L3 forwarding.
-- Endpoint labels are attached on interface CRs in `variants/edge-interfaces-dot1q.yaml` (for example `eda.nokia.com/ms-group` and `eda.nokia.com/vnet-ms-*`).
-- `AssociationPolicy` maps variant resources (VLAN, BridgeInterface, RoutedInterface, IRBInterface, or StaticRoute) to `GroupTag` values (`red`/`blue`/`green`/`gateway`).
-- `MicroSegmentationPolicy` enforces traffic by matching source/destination GroupTags and applying allow/deny on its `serviceTargets` (`virtualNetworks`, `routers`, or `bridgeDomains`).
-
-### Variant glossary (A-G)
-
-- **A**: VLAN association and `virtualNetworks` enforcement on `vnet-ms-vlan`; validated on leaf-1/2/3.
-- **B**: BridgeInterface association and `virtualNetworks` enforcement on `vnet-ms-bridge`; validated on leaf-5/6/7.
-- **C**: RoutedInterface association and `virtualNetworks` enforcement on `vnet-ms-routed`; validated on leaf-5/6/7.
-- **D**: IRB-focused segmentation (`gateway` + host groups) on `vnet-ms-irb`; validated on **leaf-2=blue, leaf-3=green, leaf-4=red** (`client2/3/4`, VLAN 85).
-- **E**: StaticRoute + segmentation checks on `vnet-ms-static`; validated on **leaf-6=blue, leaf-7=green, leaf-8=red** (`client6/7/8`, VLAN 90).
-- **F**: VLAN association with `router`-target enforcement on `vnet-ms-enf-router`; validated on leaf-5/6/7.
-- **G**: VLAN association with `bridgeDomain`-target (L2) enforcement on `vnet-ms-enf-bd`; validated on leaf-5/6/7.
-
-**Scope:** current automated validation is leaf-local only; no across-DC test path is included yet.
+**Validated (Aug 2026):** D on leaf-2/3/4, E on leaf-6/7/8.
 
 ## L3 / IRB
 
-Multi-leaf same-subnet gateways: prefer **`rfc9135SymmetricMode`** over legacy **`hostRoutePopulate`** â€” see [docs/L3-IRB-RFC9135.md](docs/L3-IRB-RFC9135.md).
+Multi-leaf same-subnet gateways: prefer **`rfc9135SymmetricMode`** over legacy **`hostRoutePopulate`** — see [docs/L3-IRB-RFC9135.md](docs/L3-IRB-RFC9135.md).
 
 ## Client setup
 
 ```bash
-python3 scripts/configure-client-ms-eth1.py --variant A --apply   # VLAN 75, vnet-ms-vlan
-python3 scripts/run-ms-tests.py                                    # all variants Aâ€“G
+python3 scripts/configure-client-ms-eth1.py --variant D --apply
+python3 scripts/run-ms-tests.py D E
 ```
 
-**Clab topology:** `docs/CLAB-3-TIER-TOPOLOGY.md`
+**Clab topology:** `docs/CLAB-3-TIER-TOPOLOGY.md` (MS scope: `docs/VARIANT-SCOPE-LOCK.md` overrides)
 
 ## Key files
 
@@ -88,6 +79,3 @@ python3 scripts/run-ms-tests.py                                    # all variant
 | `variants/microsegmentation-policies.yaml` | `ms-policy-*` per variant |
 | `docs/EDA-Microsegmentation.md` | Architecture and policy guide |
 | `docs/EDA-Microsegmentation-Test-Report.md` | Test results |
-
-
-

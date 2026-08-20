@@ -2,6 +2,8 @@
 
 This document overrides older tables in `docs/CLAB-3-TIER-TOPOLOGY.md` and any agent notes that used leaf-1/2/3 or client1/2/3 for the current MS test.
 
+Per-variant architecture (association, enforcement, purpose): `docs/EDA-Microsegmentation.md` **§2.4–§2.10**.
+
 ## Active scopes
 
 | Phase | Variant | Leaves (max 3) | Clients | Leaf colours |

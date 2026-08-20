@@ -11,6 +11,8 @@
 
 **Scope authority:** `docs/VARIANT-SCOPE-LOCK.md` — max **3 leaves** per `vnet-ms-*`; never span all eight leaves.
 
+**Architecture / per-variant guide:** `docs/EDA-Microsegmentation.md` **§2** (EDA intro + variants A–G).
+
 ---
 
 ## 1. Executive summary (2026-08-20)
