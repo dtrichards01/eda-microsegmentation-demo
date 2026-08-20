@@ -1,0 +1,26 @@
+# Group tags = microsegmentation segments (local scope per VirtualNetwork).
+# Requires microsegmentation app + bootstrap pools group-tag-pool-local / group-tag-pool-global.
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: GroupTag
+metadata:
+  name: red
+  namespace: clab-3-tier-leaf-spine-dcgw
+spec:
+  scope: Local
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: GroupTag
+metadata:
+  name: blue
+  namespace: clab-3-tier-leaf-spine-dcgw
+spec:
+  scope: Local
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: GroupTag
+metadata:
+  name: green
+  namespace: clab-3-tier-leaf-spine-dcgw
+spec:
+  scope: Local

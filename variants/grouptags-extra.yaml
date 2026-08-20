@@ -1,0 +1,19 @@
+# Extra GroupTags for IRB and static-route variant demos.
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: GroupTag
+metadata:
+  name: gateway
+  namespace: clab-3-tier-leaf-spine-dcgw
+spec:
+  description: Gateway / IRB segment (IRB-interface association demo)
+  scope: Local
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: GroupTag
+metadata:
+  name: remote
+  namespace: clab-3-tier-leaf-spine-dcgw
+spec:
+  description: Remote prefix reached via tagged static route
+  scope: Local

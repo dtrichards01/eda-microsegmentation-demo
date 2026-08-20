@@ -1,0 +1,31 @@
+# VARIANT-F — enforcement router target demo labels
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-4-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: red
+    eda.nokia.com/ms-demo: vnet-ms-enf-router
+    eda.nokia.com/vnet-ms-enf-router: bd-ms-enf-router
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-5-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: blue
+    eda.nokia.com/ms-demo: vnet-ms-enf-router
+    eda.nokia.com/vnet-ms-enf-router: bd-ms-enf-router
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-8-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: green
+    eda.nokia.com/ms-demo: vnet-ms-enf-router
+    eda.nokia.com/vnet-ms-enf-router: bd-ms-enf-router

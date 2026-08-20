@@ -1,0 +1,88 @@
+# Policy: red <-> blue allowed; red <-> green blocked; same-group allowed; else drop.
+# First matching entry wins — default deny is last.
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: MicroSegmentationPolicy
+metadata:
+  name: red-blue-green
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/gbp: red-blue-green
+spec:
+  serviceTargets:
+    virtualNetworks:
+      - vnet-ms-demo
+  entries:
+    - description: allow red to/from red
+      bidirectional: true
+      match:
+        sourceGroupTag:
+          - red
+        destinationGroupTag:
+          - red
+      action:
+        forward: Accept
+        collectStats: true
+        log: false
+    - description: allow blue to/from blue
+      bidirectional: true
+      match:
+        sourceGroupTag:
+          - blue
+        destinationGroupTag:
+          - blue
+      action:
+        forward: Accept
+        collectStats: true
+        log: false
+    - description: allow green to/from green
+      bidirectional: true
+      match:
+        sourceGroupTag:
+          - green
+        destinationGroupTag:
+          - green
+      action:
+        forward: Accept
+        collectStats: true
+        log: false
+    - description: allow red to/from blue
+      bidirectional: true
+      match:
+        sourceGroupTag:
+          - red
+        destinationGroupTag:
+          - blue
+      action:
+        forward: Accept
+        collectStats: true
+        log: false
+    - description: allow blue to/from green
+      bidirectional: true
+      match:
+        sourceGroupTag:
+          - blue
+        destinationGroupTag:
+          - green
+      action:
+        forward: Accept
+        collectStats: true
+        log: false
+    - description: block red to/from green
+      bidirectional: true
+      match:
+        sourceGroupTag:
+          - red
+        destinationGroupTag:
+          - green
+      action:
+        forward: Drop
+        collectStats: true
+        log: true
+    - description: default deny all other cross-segment traffic
+      bidirectional: true
+      match: {}
+      action:
+        forward: Drop
+        collectStats: true
+        log: false

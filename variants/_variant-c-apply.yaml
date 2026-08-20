@@ -1,0 +1,185 @@
+apiVersion: services.eda.nokia.com/v2
+kind: VirtualNetwork
+metadata:
+  name: vnet-ms-routed
+  namespace: clab-3-tier-leaf-spine-dcgw
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-C \u0393\xC7\xF6 GroupTag via RoutedInterface\
+      \ selectors (L3 handoff, no BD/IRB). Enforcement serviceTargets.virtualNetworks."
+  labels:
+    eda.nokia.com/ms-variant: routed-interface-association
+spec:
+  bridgeDomains: []
+  bridgeInterfaces: []
+  irbInterfaces: []
+  routedInterfaces:
+  - name: ri-red-5
+    spec:
+      description: "Red \u0393\xC7\xF6 routed interface 172.16.80.1/24 on leaf-5"
+      interface: leaf-5-ethernet-1-5
+      ipMTU: 1500
+      ipv4:
+        arpTimeoutSeconds: 14400
+        learnUnsolicitedARP: Disabled
+      ipv4Addresses:
+      - ipPrefix: 172.16.80.1/24
+        primary: true
+      router: router-ms-routed
+      vlanID: '80'
+      vlanPool: vlan-pool
+  - name: ri-blue-6
+    spec:
+      description: "Blue \u0393\xC7\xF6 routed interface 172.16.81.1/24 on leaf-6"
+      interface: leaf-6-ethernet-1-5
+      ipMTU: 1500
+      ipv4:
+        arpTimeoutSeconds: 14400
+        learnUnsolicitedARP: Disabled
+      ipv4Addresses:
+      - ipPrefix: 172.16.81.1/24
+        primary: true
+      router: router-ms-routed
+      vlanID: '81'
+      vlanPool: vlan-pool
+  - name: ri-green-7
+    spec:
+      description: "Green \u0393\xC7\xF6 routed interface 172.16.82.1/24 on leaf-7"
+      interface: leaf-7-ethernet-1-5
+      ipMTU: 1500
+      ipv4:
+        arpTimeoutSeconds: 14400
+        learnUnsolicitedARP: Disabled
+      ipv4Addresses:
+      - ipPrefix: 172.16.82.1/24
+        primary: true
+      router: router-ms-routed
+      vlanID: '82'
+      vlanPool: vlan-pool
+  routers:
+  - name: router-ms-routed
+    spec:
+      description: L3-only router for routed-interface association demo
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      routerID: 10.3.3.1
+      type: EVPNVXLAN
+  vlans: []
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: ms-assoc-routed
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: routed-interface-association
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-C \xE2\u20AC\u201D tags via routedInterfaces\
+      \ ri-red-5 / ri-blue-6 / ri-green-7"
+spec:
+  associationPolicyEntries:
+  - groupTagNames:
+    - red
+    associationTargets:
+      routedInterfaces:
+      - ri-red-5
+  - groupTagNames:
+    - blue
+    associationTargets:
+      routedInterfaces:
+      - ri-blue-6
+  - groupTagNames:
+    - green
+    associationTargets:
+      routedInterfaces:
+      - ri-green-7
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: MicroSegmentationPolicy
+metadata:
+  name: ms-policy-routed
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: routed-interface-association
+  annotations:
+    eda.nokia.com/ms-demo-description: "Policy for vnet-ms-routed \u2014 serviceTargets.virtualNetworks"
+spec:
+  serviceTargets:
+    virtualNetworks:
+    - vnet-ms-routed
+  entries:
+  - description: allow same-group red
+    bidirectional: true
+    match:
+      sourceGroupTag:
+      - red
+      destinationGroupTag:
+      - red
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow blue-blue
+    bidirectional: true
+    match:
+      sourceGroupTag:
+      - blue
+      destinationGroupTag:
+      - blue
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow green-green
+    bidirectional: true
+    match:
+      sourceGroupTag:
+      - green
+      destinationGroupTag:
+      - green
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow red to/from blue
+    bidirectional: true
+    match:
+      sourceGroupTag:
+      - red
+      destinationGroupTag:
+      - blue
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow blue to/from green
+    bidirectional: true
+    match:
+      sourceGroupTag:
+      - blue
+      destinationGroupTag:
+      - green
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: block red to/from green
+    bidirectional: true
+    match:
+      sourceGroupTag:
+      - red
+      destinationGroupTag:
+      - green
+    action:
+      forward: Drop
+      collectStats: true
+      log: true
+  - description: default deny
+    bidirectional: true
+    match: {}
+    action:
+      forward: Drop
+      collectStats: true
+      log: false

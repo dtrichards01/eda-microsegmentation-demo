@@ -1,0 +1,63 @@
+# Single L3 vnet for microsegmentation validation — shared subnet 172.16.50.0/24
+# Attach three clients with labels eda.nokia.com/ms-group=red|blue|green
+---
+apiVersion: services.eda.nokia.com/v2
+kind: VirtualNetwork
+metadata:
+  name: vnet-ms-demo
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/gbp: red-blue-green
+spec:
+  bridgeDomains:
+    - name: bd-ms
+      spec:
+        encapOptions:
+          vxlan:
+            tunnelIndexPool: tunnel-index-pool
+            vniPool: vni-pool
+        eviPool: evi-pool
+        macLearning:
+          agingTimeSeconds: 300
+          enabled: true
+        type: EVPNVXLAN
+  bridgeInterfaces: []
+  irbInterfaces:
+    - name: irb-ms
+      spec:
+        bridgeDomain: bd-ms
+        ipAddresses:
+          - ipv4Address:
+              ipPrefix: 172.16.50.254/24
+              primary: true
+          - ipv6Address:
+              ipPrefix: fc00:50::1/120
+              primary: true
+        ipMTU: 1500
+        ipv4:
+          arpTimeoutSeconds: 14400
+          learnUnsolicitedARP: Disabled
+        ipv6:
+          learnUnsolicitedNA: Disabled
+        router: router-ms
+        virtualIPDiscovery: []
+  routedInterfaces: []
+  routers:
+    - name: router-ms
+      spec:
+        encapOptions:
+          vxlan:
+            tunnelIndexPool: tunnel-index-pool
+            vniPool: vni-pool
+        eviPool: evi-pool
+        routerID: 172.16.50.254
+        type: EVPNVXLAN
+  vlans:
+    - name: vlan-null-vnet-ms-demo
+      spec:
+        bridgeDomain: bd-ms
+        interfaceSelectors:
+          - eda.nokia.com/ms-group = red
+          - eda.nokia.com/ms-group = blue
+          - eda.nokia.com/ms-group = green
+        vlanID: "null"

@@ -1,0 +1,26 @@
+# Maps GroupTags to endpoints via label selectors on BridgeInterfaces.
+# Label leaf/client bridge attachments: eda.nokia.com/ms-group = red|blue|green
+# (see interface-labels-example.yaml)
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: ms-red-blue-green-associations
+  namespace: clab-3-tier-leaf-spine-dcgw
+spec:
+  associationPolicyEntries:
+    - groupTagNames:
+        - red
+      associationTargets:
+        bridgeInterfaceSelectors:
+          - eda.nokia.com/ms-group = red
+    - groupTagNames:
+        - blue
+      associationTargets:
+        bridgeInterfaceSelectors:
+          - eda.nokia.com/ms-group = blue
+    - groupTagNames:
+        - green
+      associationTargets:
+        bridgeInterfaceSelectors:
+          - eda.nokia.com/ms-group = green

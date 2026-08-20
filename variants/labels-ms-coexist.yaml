@@ -1,0 +1,3 @@
+# DEPRECATED — labels merged into edge-interfaces-dot1q.yaml.
+# Do not kubectl apply this file (no spec — would wipe Interface CRs).
+# See edge-interfaces-dot1q.yaml

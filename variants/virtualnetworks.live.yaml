@@ -1,0 +1,688 @@
+apiVersion: services.eda.nokia.com/v2
+kind: VirtualNetwork
+metadata:
+  annotations:
+    eda.nokia.com/ms-demo-description: VARIANT-B ΓÇö GroupTag via BridgeInterface (explicit
+      bi-* CRs + bridgeInterfaceSelectors). Enforcement serviceTargets.virtualNetworks.
+  creationTimestamp: "2026-08-19T13:54:00Z"
+  generation: 3
+  labels:
+    eda.nokia.com/ms-variant: bridge-interface-association
+  name: vnet-ms-bridge
+  namespace: clab-3-tier-leaf-spine-dcgw
+  resourceVersion: "9621912"
+  uid: 4d59dee2-2550-43c5-96e1-1419fa7e1b26
+spec:
+  bridgeDomains:
+  - name: bd-ms-bridge
+    spec:
+      description: VARIANT-B bridge-interface association ΓÇö red/blue/green
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      macLearning:
+        agingTimeSeconds: 300
+        enabled: true
+      type: EVPNVXLAN
+  bridgeInterfaces:
+  - name: bi-red-5
+    spec:
+      bridgeDomain: bd-ms-bridge
+      description: Red client ΓÇö leaf-5 ethernet-1/5 (association target bi-red-5)
+      interface: leaf-5-ethernet-1-5
+      vlanID: "75"
+  - name: bi-blue-6
+    spec:
+      bridgeDomain: bd-ms-bridge
+      description: Blue client ΓÇö leaf-6 ethernet-1/5
+      interface: leaf-6-ethernet-1-5
+      vlanID: "75"
+  - name: bi-green-7
+    spec:
+      bridgeDomain: bd-ms-bridge
+      description: Green client ΓÇö leaf-7 ethernet-1/5
+      interface: leaf-7-ethernet-1-5
+      vlanID: "75"
+  irbInterfaces:
+  - name: irb-ms-bridge
+    spec:
+      bridgeDomain: bd-ms-bridge
+      description: Gateway 172.16.75.254/24
+      evpnRouteAdvertisementType:
+        arpDynamic: true
+        arpStatic: true
+        ndDynamic: true
+        ndStatic: true
+        rfc9135SymmetricMode: true
+      ipAddresses:
+      - ipv4Address:
+          ipPrefix: 172.16.75.254/24
+          primary: true
+      ipMTU: 1500
+      ipv4:
+        arpTimeoutSeconds: 14400
+        learnUnsolicitedARP: Disabled
+      router: router-ms-bridge
+      virtualIPDiscovery: []
+  routedInterfaces: []
+  routers:
+  - name: router-ms-bridge
+    spec:
+      description: L3 router for vnet-ms-bridge ΓÇö policy on virtualNetwork target
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      routerID: 10.2.2.1
+      type: EVPNVXLAN
+  vlans: []
+status:
+  lastChangeTime: "2026-08-19T14:02:13.000Z"
+  nodes:
+  - leaf-6
+  - leaf-7
+  - leaf-5
+  numBGPPeers: 0
+  numBGPPeersOperDown: 0
+  numIRBInterfaces: 1
+  numIRBInterfacesOperDown: 0
+  numNodes: 3
+  numOSPFInterfaces: 0
+  numOSPFInterfacesOperDown: 0
+  numRoutedInterfaces: 0
+  numRoutedInterfacesOperDown: 0
+  numSubinterfaces: 3
+  numSubinterfacesOperDown: 0
+  operationalState: Up
+---
+apiVersion: services.eda.nokia.com/v2
+kind: VirtualNetwork
+metadata:
+  annotations:
+    eda.nokia.com/ms-demo-description: VARIANT-G ΓÇö L2-only service; VLAN tagging +
+      MicroSegmentationPolicy serviceTargets.bridgeDomains (bd-ms-enf-bd). No IP router.
+  creationTimestamp: "2026-08-19T14:13:52Z"
+  generation: 1
+  labels:
+    eda.nokia.com/ms-variant: enforcement-bridge-domain-target
+  name: vnet-ms-enf-bd
+  namespace: clab-3-tier-leaf-spine-dcgw
+  resourceVersion: "9621055"
+  uid: 5d734162-4ee9-4aee-9c63-e52af38e79dc
+spec:
+  bridgeDomains:
+  - name: bd-ms-enf-bd
+    spec:
+      description: L2-only BD ΓÇö GBP on MAC-VRF via bridgeDomains serviceTarget
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      macLearning:
+        agingTimeSeconds: 300
+        enabled: true
+      type: EVPNVXLAN
+  bridgeInterfaces: []
+  irbInterfaces: []
+  routedInterfaces: []
+  routers: []
+  vlans:
+  - name: vlan-enf-bd-red
+    spec:
+      bridgeDomain: bd-ms-enf-bd
+      description: Red VLAN for L2 enforcement demo
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=red,eda.nokia.com/vnet-ms-enf-bd=bd-ms-enf-bd
+      vlanID: "110"
+  - name: vlan-enf-bd-blue
+    spec:
+      bridgeDomain: bd-ms-enf-bd
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=blue,eda.nokia.com/vnet-ms-enf-bd=bd-ms-enf-bd
+      vlanID: "110"
+  - name: vlan-enf-bd-green
+    spec:
+      bridgeDomain: bd-ms-enf-bd
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=green,eda.nokia.com/vnet-ms-enf-bd=bd-ms-enf-bd
+      vlanID: "110"
+status:
+  lastChangeTime: "2026-08-19T14:13:52.000Z"
+  nodes: []
+  numBGPPeers: 0
+  numBGPPeersOperDown: 0
+  numIRBInterfaces: 0
+  numIRBInterfacesOperDown: 0
+  numNodes: 0
+  numOSPFInterfaces: 0
+  numOSPFInterfacesOperDown: 0
+  numRoutedInterfaces: 0
+  numRoutedInterfacesOperDown: 0
+  numSubinterfaces: 0
+  numSubinterfacesOperDown: 0
+  operationalState: Unknown
+---
+apiVersion: services.eda.nokia.com/v2
+kind: VirtualNetwork
+metadata:
+  annotations:
+    eda.nokia.com/ms-demo-description: VARIANT-F ΓÇö Same VLAN client tagging as VARIANT-A
+      but MicroSegmentationPolicy serviceTargets.routers (router-ms-enf-router) instead
+      of virtualNetworks.
+  creationTimestamp: "2026-08-19T14:12:45Z"
+  generation: 2
+  labels:
+    eda.nokia.com/ms-variant: enforcement-router-target
+  name: vnet-ms-enf-router
+  namespace: clab-3-tier-leaf-spine-dcgw
+  resourceVersion: "9621725"
+  uid: c0b55dc7-ce4c-4981-941d-9da19c14d212
+spec:
+  bridgeDomains:
+  - name: bd-ms-enf-router
+    spec:
+      description: BD for enforcement-router-target demo
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      macLearning:
+        agingTimeSeconds: 300
+        enabled: true
+      type: EVPNVXLAN
+  bridgeInterfaces: []
+  irbInterfaces:
+  - name: irb-ms-enf-router
+    spec:
+      bridgeDomain: bd-ms-enf-router
+      description: Gateway 172.16.100.254/24
+      evpnRouteAdvertisementType:
+        arpDynamic: true
+        arpStatic: true
+        ndDynamic: true
+        ndStatic: true
+        rfc9135SymmetricMode: true
+      ipAddresses:
+      - ipv4Address:
+          ipPrefix: 172.16.100.254/24
+          primary: true
+      ipMTU: 1500
+      ipv4:
+        arpTimeoutSeconds: 14400
+        learnUnsolicitedARP: Disabled
+      router: router-ms-enf-router
+      virtualIPDiscovery: []
+  routedInterfaces: []
+  routers:
+  - name: router-ms-enf-router
+    spec:
+      description: GBP ACL applied via serviceTargets.routers (not virtualNetworks)
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      nodeSelectors:
+      - eda.nokia.com/role=leaf
+      routerID: 10.7.7.1
+      type: EVPNVXLAN
+  vlans:
+  - name: vlan-enf-router-red
+    spec:
+      bridgeDomain: bd-ms-enf-router
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=red,eda.nokia.com/vnet-ms-enf-router=bd-ms-enf-router
+      vlanID: "100"
+  - name: vlan-enf-router-blue
+    spec:
+      bridgeDomain: bd-ms-enf-router
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=blue,eda.nokia.com/vnet-ms-enf-router=bd-ms-enf-router
+      vlanID: "100"
+  - name: vlan-enf-router-green
+    spec:
+      bridgeDomain: bd-ms-enf-router
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=green,eda.nokia.com/vnet-ms-enf-router=bd-ms-enf-router
+      vlanID: "100"
+status:
+  lastChangeTime: "2026-08-19T14:12:45.000Z"
+  nodes:
+  - leaf-6
+  - leaf-7
+  - leaf-4
+  - leaf-5
+  - leaf-2
+  - leaf-3
+  - leaf-8
+  - leaf-1
+  numBGPPeers: 0
+  numBGPPeersOperDown: 0
+  numIRBInterfaces: 1
+  numIRBInterfacesOperDown: 0
+  numNodes: 8
+  numOSPFInterfaces: 0
+  numOSPFInterfacesOperDown: 0
+  numRoutedInterfaces: 0
+  numRoutedInterfacesOperDown: 0
+  numSubinterfaces: 0
+  numSubinterfacesOperDown: 0
+  operationalState: Unknown
+---
+apiVersion: services.eda.nokia.com/v2
+kind: VirtualNetwork
+metadata:
+  annotations:
+    eda.nokia.com/ms-demo-description: VARIANT-D ΓÇö GroupTag on IRB (gateway segment).
+      Clients on VLAN for L2 attach; association tags irb-ms-irb as gateway. Enforcement
+      serviceTargets.virtualNetworks.
+  creationTimestamp: "2026-08-19T14:08:13Z"
+  generation: 2
+  labels:
+    eda.nokia.com/ms-variant: irb-interface-association
+  name: vnet-ms-irb
+  namespace: clab-3-tier-leaf-spine-dcgw
+  resourceVersion: "9622223"
+  uid: 9b605c4a-1324-47ee-a572-966159e412d8
+spec:
+  bridgeDomains:
+  - name: bd-ms-irb
+    spec:
+      description: L2 BD for IRB-interface association demo (leaf-1/2/3)
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      macLearning:
+        agingTimeSeconds: 300
+        enabled: true
+      type: EVPNVXLAN
+  bridgeInterfaces: []
+  irbInterfaces:
+  - name: irb-ms-irb
+    spec:
+      bridgeDomain: bd-ms-irb
+      description: Tagged gateway IRB ΓÇö association target for GroupTag gateway
+      evpnRouteAdvertisementType:
+        arpDynamic: true
+        arpStatic: true
+        ndDynamic: true
+        ndStatic: true
+        rfc9135SymmetricMode: true
+      ipAddresses:
+      - ipv4Address:
+          ipPrefix: 172.16.85.254/24
+          primary: true
+      ipMTU: 1500
+      ipv4:
+        arpTimeoutSeconds: 14400
+        learnUnsolicitedARP: Disabled
+      router: router-ms-irb
+      virtualIPDiscovery: []
+  routedInterfaces: []
+  routers:
+  - name: router-ms-irb
+    spec:
+      description: Router for vnet-ms-irb ΓÇö gateway-centric GBP rules
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      nodeSelectors:
+      - eda.nokia.com/role=leaf
+      routerID: 10.5.5.1
+      type: EVPNVXLAN
+  vlans:
+  - name: vlan-ms-irb-red
+    spec:
+      bridgeDomain: bd-ms-irb
+      description: Red client attach leaf-1
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=red,eda.nokia.com/vnet-ms-irb=bd-ms-irb
+      vlanID: "85"
+  - name: vlan-ms-irb-blue
+    spec:
+      bridgeDomain: bd-ms-irb
+      description: Blue client attach leaf-2
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=blue,eda.nokia.com/vnet-ms-irb=bd-ms-irb
+      vlanID: "85"
+  - name: vlan-ms-irb-green
+    spec:
+      bridgeDomain: bd-ms-irb
+      description: Green client attach leaf-3
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=green,eda.nokia.com/vnet-ms-irb=bd-ms-irb
+      vlanID: "85"
+status:
+  lastChangeTime: "2026-08-19T14:08:13.000Z"
+  nodes:
+  - leaf-6
+  - leaf-7
+  - leaf-4
+  - leaf-5
+  - leaf-2
+  - leaf-3
+  - leaf-8
+  - leaf-1
+  numBGPPeers: 0
+  numBGPPeersOperDown: 0
+  numIRBInterfaces: 1
+  numIRBInterfacesOperDown: 0
+  numNodes: 8
+  numOSPFInterfaces: 0
+  numOSPFInterfacesOperDown: 0
+  numRoutedInterfaces: 0
+  numRoutedInterfacesOperDown: 0
+  numSubinterfaces: 0
+  numSubinterfacesOperDown: 0
+  operationalState: Unknown
+---
+apiVersion: services.eda.nokia.com/v2
+kind: VirtualNetwork
+metadata:
+  annotations:
+    eda.nokia.com/ms-demo-description: VARIANT-C ΓÇö GroupTag via RoutedInterface selectors
+      (L3 handoff, no BD/IRB). Enforcement serviceTargets.virtualNetworks.
+  creationTimestamp: "2026-08-19T14:00:54Z"
+  generation: 1
+  labels:
+    eda.nokia.com/ms-variant: routed-interface-association
+  name: vnet-ms-routed
+  namespace: clab-3-tier-leaf-spine-dcgw
+  resourceVersion: "9618498"
+  uid: bed12037-1b40-468d-8990-0e790259b902
+spec:
+  bridgeDomains: []
+  bridgeInterfaces: []
+  irbInterfaces: []
+  routedInterfaces:
+  - name: ri-red-5
+    spec:
+      description: Red ΓÇö routed interface 172.16.80.1/24 on leaf-5
+      interface: leaf-5-ethernet-1-5
+      ipMTU: 1500
+      ipv4:
+        arpTimeoutSeconds: 14400
+        learnUnsolicitedARP: Disabled
+      ipv4Addresses:
+      - ipPrefix: 172.16.80.1/24
+        primary: true
+      router: router-ms-routed
+      vlanID: "80"
+      vlanPool: vlan-pool
+  - name: ri-blue-6
+    spec:
+      description: Blue ΓÇö routed interface 172.16.81.1/24 on leaf-6
+      interface: leaf-6-ethernet-1-5
+      ipMTU: 1500
+      ipv4:
+        arpTimeoutSeconds: 14400
+        learnUnsolicitedARP: Disabled
+      ipv4Addresses:
+      - ipPrefix: 172.16.81.1/24
+        primary: true
+      router: router-ms-routed
+      vlanID: "81"
+      vlanPool: vlan-pool
+  - name: ri-green-7
+    spec:
+      description: Green ΓÇö routed interface 172.16.82.1/24 on leaf-7
+      interface: leaf-7-ethernet-1-5
+      ipMTU: 1500
+      ipv4:
+        arpTimeoutSeconds: 14400
+        learnUnsolicitedARP: Disabled
+      ipv4Addresses:
+      - ipPrefix: 172.16.82.1/24
+        primary: true
+      router: router-ms-routed
+      vlanID: "82"
+      vlanPool: vlan-pool
+  routers:
+  - name: router-ms-routed
+    spec:
+      description: L3-only router for routed-interface association demo
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      routerID: 10.3.3.1
+      type: EVPNVXLAN
+  vlans: []
+status:
+  lastChangeTime: "2026-08-19T14:00:54.000Z"
+  nodes:
+  - leaf-6
+  - leaf-7
+  - leaf-5
+  numBGPPeers: 0
+  numBGPPeersOperDown: 0
+  numIRBInterfaces: 0
+  numIRBInterfacesOperDown: 0
+  numNodes: 3
+  numOSPFInterfaces: 0
+  numOSPFInterfacesOperDown: 0
+  numRoutedInterfaces: 3
+  numRoutedInterfacesOperDown: 0
+  numSubinterfaces: 0
+  numSubinterfacesOperDown: 0
+  operationalState: Up
+---
+apiVersion: services.eda.nokia.com/v2
+kind: VirtualNetwork
+metadata:
+  annotations:
+    eda.nokia.com/ms-demo-description: VARIANT-E ΓÇö GroupTag on StaticRoute static-remote-green
+      (172.16.90.0/24). Clients tagged via VLAN selectors. Enforcement serviceTargets.virtualNetworks.
+  creationTimestamp: "2026-08-19T14:10:39Z"
+  generation: 2
+  labels:
+    eda.nokia.com/ms-variant: static-route-association
+  name: vnet-ms-static
+  namespace: clab-3-tier-leaf-spine-dcgw
+  resourceVersion: "9622500"
+  uid: 2e12657a-7711-4d37-ba02-a0c858cff399
+spec:
+  bridgeDomains:
+  - name: bd-ms-static
+    spec:
+      description: L2 BD for static-route association demo
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      macLearning:
+        agingTimeSeconds: 300
+        enabled: true
+      type: EVPNVXLAN
+  bridgeInterfaces: []
+  irbInterfaces:
+  - name: irb-ms-static
+    spec:
+      bridgeDomain: bd-ms-static
+      description: Gateway 172.16.90.254/24
+      evpnRouteAdvertisementType:
+        arpDynamic: true
+        arpStatic: true
+        ndDynamic: true
+        ndStatic: true
+        rfc9135SymmetricMode: true
+      ipAddresses:
+      - ipv4Address:
+          ipPrefix: 172.16.90.254/24
+          primary: true
+      ipMTU: 1500
+      ipv4:
+        arpTimeoutSeconds: 14400
+        learnUnsolicitedARP: Disabled
+      router: router-ms-static
+      virtualIPDiscovery: []
+  protocols:
+    staticRoutes:
+    - name: static-remote-green
+      spec:
+        nexthopGroup:
+          blackhole: true
+          resolve: false
+        prefixes:
+        - 172.16.91.0/24
+        router: router-ms-static
+  routedInterfaces: []
+  routers:
+  - name: router-ms-static
+    spec:
+      description: Router hosting static-remote-green tagged prefix
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      nodeSelectors:
+      - eda.nokia.com/role=leaf
+      routerID: 10.6.6.1
+      type: EVPNVXLAN
+  vlans:
+  - name: vlan-ms-static-red
+    spec:
+      bridgeDomain: bd-ms-static
+      description: Red client VLAN selector
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=red,eda.nokia.com/vnet-ms-static=bd-ms-static
+      vlanID: "90"
+  - name: vlan-ms-static-blue
+    spec:
+      bridgeDomain: bd-ms-static
+      description: Blue client VLAN selector
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=blue,eda.nokia.com/vnet-ms-static=bd-ms-static
+      vlanID: "90"
+  - name: vlan-ms-static-green
+    spec:
+      bridgeDomain: bd-ms-static
+      description: Green client VLAN selector
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=green,eda.nokia.com/vnet-ms-static=bd-ms-static
+      vlanID: "90"
+status:
+  lastChangeTime: "2026-08-19T14:10:39.000Z"
+  nodes:
+  - leaf-6
+  - leaf-7
+  - leaf-4
+  - leaf-5
+  - leaf-2
+  - leaf-3
+  - leaf-8
+  - leaf-1
+  numBGPPeers: 0
+  numBGPPeersOperDown: 0
+  numIRBInterfaces: 1
+  numIRBInterfacesOperDown: 0
+  numNodes: 8
+  numOSPFInterfaces: 0
+  numOSPFInterfacesOperDown: 0
+  numRoutedInterfaces: 0
+  numRoutedInterfacesOperDown: 0
+  numSubinterfaces: 0
+  numSubinterfacesOperDown: 0
+  operationalState: Unknown
+---
+apiVersion: services.eda.nokia.com/v2
+kind: VirtualNetwork
+metadata:
+  creationTimestamp: "2026-08-19T12:06:58Z"
+  generation: 3
+  name: vnet-ms-vlan
+  namespace: clab-3-tier-leaf-spine-dcgw
+  resourceVersion: "9619056"
+  uid: f9a5c46e-4853-4110-a302-014515c2a6d6
+spec:
+  bridgeDomains:
+  - name: bd-ms-vlan
+    spec:
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      macLearning:
+        agingTimeSeconds: 300
+        enabled: true
+      macLimit: 2000
+      type: EVPNVXLAN
+  bridgeInterfaces: []
+  irbInterfaces:
+  - name: irb-ms-vlan
+    spec:
+      bridgeDomain: bd-ms-vlan
+      evpnRouteAdvertisementType:
+        arpDynamic: true
+        arpStatic: true
+        ndDynamic: true
+        ndStatic: true
+        rfc9135SymmetricMode: true
+      ipAddresses:
+      - ipv4Address:
+          ipPrefix: 172.16.75.254/24
+          primary: true
+      ipMTU: 1500
+      router: router-ms-vlan
+  routedInterfaces: []
+  routers:
+  - name: router-ms-vlan
+    spec:
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      routerID: 3.4.5.6
+      type: EVPNVXLAN
+  vlans:
+  - name: vlan-ms-vlan-red
+    spec:
+      bridgeDomain: bd-ms-vlan
+      description: Red client leaf-1
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=red,eda.nokia.com/vnet-ms-vlan=bd-ms-vlan
+      vlanID: "75"
+  - name: vlan-ms-vlan-blue
+    spec:
+      bridgeDomain: bd-ms-vlan
+      description: Blue client leaf-2
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=blue,eda.nokia.com/vnet-ms-vlan=bd-ms-vlan
+      vlanID: "75"
+  - name: vlan-ms-vlan-green
+    spec:
+      bridgeDomain: bd-ms-vlan
+      description: Green client leaf-3
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=green,eda.nokia.com/vnet-ms-vlan=bd-ms-vlan
+      vlanID: "75"
+status:
+  lastChangeTime: "2026-08-19T12:06:58.000Z"
+  nodes: []
+  numBGPPeers: 0
+  numBGPPeersOperDown: 0
+  numIRBInterfaces: 1
+  numIRBInterfacesOperDown: 0
+  numNodes: 0
+  numOSPFInterfaces: 0
+  numOSPFInterfacesOperDown: 0
+  numRoutedInterfaces: 0
+  numRoutedInterfacesOperDown: 0
+  numSubinterfaces: 0
+  numSubinterfacesOperDown: 0
+  operationalState: Unknown
+---

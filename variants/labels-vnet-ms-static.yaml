@@ -1,0 +1,32 @@
+# VARIANT-E — static-route association demo labels (scoped leaf-6/7/8)
+# leaf-6=blue (client6), leaf-7=green (client7), leaf-8=red (client8)
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-6-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: blue
+    eda.nokia.com/ms-demo: vnet-ms-static
+    eda.nokia.com/vnet-ms-static: bd-ms-static
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-7-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: green
+    eda.nokia.com/ms-demo: vnet-ms-static
+    eda.nokia.com/vnet-ms-static: bd-ms-static
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-8-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: red
+    eda.nokia.com/ms-demo: vnet-ms-static
+    eda.nokia.com/vnet-ms-static: bd-ms-static

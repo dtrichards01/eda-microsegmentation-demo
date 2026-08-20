@@ -1,0 +1,22 @@
+# Reference patch: ms-assoc-bridge with explicit bridgeInterfaces (Variant B isolation test 2026-08-19).
+# Apply after vnet-ms-bridge + ms-policy-bridge; replaces bridgeInterfaceSelectors approach.
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: ms-assoc-bridge
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: bridge-interface-association
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-B - tags via bridgeInterfaces bi-red-5 / bi-blue-6 / bi-green-7"
+spec:
+  associationPolicyEntries:
+    - groupTagNames: [red]
+      associationTargets:
+        bridgeInterfaces: [bi-red-5]
+    - groupTagNames: [blue]
+      associationTargets:
+        bridgeInterfaces: [bi-blue-6]
+    - groupTagNames: [green]
+      associationTargets:
+        bridgeInterfaces: [bi-green-7]

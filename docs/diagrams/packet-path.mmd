@@ -1,0 +1,44 @@
+---
+config:
+  theme: base
+  themeVariables:
+    fontSize: 15px
+    fontFamily: Segoe UI, Arial, sans-serif
+    lineColor: "#64748b"
+---
+flowchart LR
+  subgraph S1["① Client"]
+    CL["eth1.101<br/>Dot1q subinterface"]
+  end
+
+  subgraph S2["② Leaf edge"]
+    EDGE["ethernet-1/5.101<br/>GBP group tag applied"]
+  end
+
+  subgraph S3["③ MAC-VRF"]
+    BD["bd-ms-vlan<br/>L2 bridge domain"]
+  end
+
+  subgraph S4["④ IP-VRF"]
+    IRB["irb-ms-vlan<br/>172.16.101.254"]
+    ACL["GBP ACL<br/>allow / drop"]
+    HOST["EVPN /32 host routes"]
+    IRB --> ACL --> HOST
+  end
+
+  subgraph S5["⑤ Forward"]
+    PEER["Remote leaf<br/>peer client"]
+  end
+
+  CL --> EDGE --> BD --> IRB
+  HOST --> PEER
+
+  classDef step fill:#f1f5f9,stroke:#475569,color:#0f172a
+  classDef mac fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+  classDef ip fill:#e0e7ff,stroke:#4338ca,color:#312e81
+  classDef fwd fill:#dcfce7,stroke:#16a34a,color:#14532d
+
+  class CL,EDGE step
+  class BD mac
+  class IRB,ACL,HOST ip
+  class PEER fwd

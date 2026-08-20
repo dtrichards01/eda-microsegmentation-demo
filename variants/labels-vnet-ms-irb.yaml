@@ -1,0 +1,29 @@
+﻿# VARIANT-D — IRB association demo labels (scoped leaf-2/3/4)
+# leaf-2=blue (client2), leaf-3=green (client3), leaf-4=red (client4)
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-2-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: blue
+    eda.nokia.com/vnet-ms-irb: bd-ms-irb
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-3-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: green
+    eda.nokia.com/vnet-ms-irb: bd-ms-irb
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-4-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: red
+    eda.nokia.com/vnet-ms-irb: bd-ms-irb

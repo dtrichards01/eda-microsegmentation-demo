@@ -1,0 +1,29 @@
+# Interface labels for vnet-ms-bridge — explicit bridgeInterfaces attach ports; labels optional for visibility.
+# Expected client IPs: 172.16.102.1 (leaf-4), .2 (leaf-5), .4 (leaf-8), GW 172.16.102.254
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-4-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: red
+    eda.nokia.com/ms-demo: vnet-ms-bridge
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-5-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: blue
+    eda.nokia.com/ms-demo: vnet-ms-bridge
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-8-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: green
+    eda.nokia.com/ms-demo: vnet-ms-bridge

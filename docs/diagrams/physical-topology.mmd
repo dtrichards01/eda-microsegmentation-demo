@@ -1,0 +1,57 @@
+---
+config:
+  theme: base
+  themeVariables:
+    fontSize: 15px
+    fontFamily: Segoe UI, Arial, sans-serif
+    primaryColor: "#e2e8f0"
+    primaryTextColor: "#0f172a"
+    lineColor: "#64748b"
+---
+flowchart TB
+  subgraph VA["Variant A · vnet-ms-vlan · VLAN 101"]
+    direction TB
+    c1["client1 · red<br/>172.16.101.1"]
+    c2["client2 · blue<br/>172.16.101.2"]
+    c3["client3 · green<br/>172.16.101.4"]
+    l1["leaf-1 · e1-5.101"]
+    l2["leaf-2 · e1-5.101"]
+    l3["leaf-3 · e1-5.101"]
+    c1 --> l1
+    c2 --> l2
+    c3 --> l3
+  end
+
+  subgraph VBG["Variants B–G · vnet-ms-* · VLAN 102–108"]
+    direction TB
+    c4["client4 · red"]
+    c5["client5 · blue"]
+    c6["client6 · green"]
+    l4["leaf-4 · e1-5"]
+    l5["leaf-5 · e1-5"]
+    l8["leaf-8 · e1-5"]
+    c4 --> l4
+    c5 --> l5
+    c6 --> l8
+  end
+
+  fabric["EVPN VXLAN fabric<br/>leaf ↔ spine"]
+
+  l1 --> fabric
+  l2 --> fabric
+  l3 --> fabric
+  l4 --> fabric
+  l5 --> fabric
+  l8 --> fabric
+
+  classDef red fill:#fecaca,stroke:#dc2626,color:#7f1d1d
+  classDef blue fill:#bfdbfe,stroke:#2563eb,color:#1e3a8a
+  classDef green fill:#bbf7d0,stroke:#16a34a,color:#14532d
+  classDef leaf fill:#f8fafc,stroke:#475569,color:#0f172a
+  classDef fabric fill:#cbd5e1,stroke:#334155,color:#0f172a,font-weight:bold
+
+  class c1,c4 red
+  class c2,c5 blue
+  class c3,c6 green
+  class l1,l2,l3,l4,l5,l8 leaf
+  class fabric fabric

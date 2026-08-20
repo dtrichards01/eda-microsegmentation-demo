@@ -1,0 +1,24 @@
+---
+config:
+  theme: base
+  themeVariables:
+    fontSize: 15px
+    fontFamily: Segoe UI, Arial, sans-serif
+---
+flowchart LR
+  GT["GroupTag<br/>red · blue · green"]
+  AP["AssociationPolicy<br/>ms-assoc-*"]
+  VN["VirtualNetwork<br/>vnet-ms-*"]
+  MP["MicroSegmentationPolicy<br/>ms-policy-*"]
+  MAC["MAC-VRF GBP<br/>group on edge"]
+  IP["IP-VRF GBP<br/>ACL rules"]
+
+  GT --> AP --> VN --> MP
+  MP --> MAC
+  MP --> IP
+
+  classDef cr fill:#fef3c7,stroke:#d97706,color:#78350f
+  classDef sw fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+
+  class GT,AP,VN,MP cr
+  class MAC,IP sw

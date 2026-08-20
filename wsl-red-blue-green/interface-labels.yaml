@@ -1,0 +1,44 @@
+apiVersion: interfaces.eda.nokia.com/v2
+kind: Interface
+metadata:
+  name: leaf-1-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/vnet-1: vlan-bd-1
+    eda.nokia.com/ms-group: red
+spec:
+  members:
+    - interface: ethernet-1/5
+      node: leaf-1
+  type: interface
+---
+apiVersion: interfaces.eda.nokia.com/v2
+kind: Interface
+metadata:
+  name: leaf-2-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/vnet-1: vlan-bd-1
+    eda.nokia.com/ms-group: blue
+spec:
+  members:
+    - interface: ethernet-1/5
+      node: leaf-2
+  type: interface
+---
+apiVersion: interfaces.eda.nokia.com/v2
+kind: Interface
+metadata:
+  name: leaf-5-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/vnet-1: vlan-bd-1
+    eda.nokia.com/ms-group: green
+spec:
+  members:
+    - interface: ethernet-1/5
+      node: leaf-5
+  type: interface

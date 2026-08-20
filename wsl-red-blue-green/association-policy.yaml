@@ -1,0 +1,22 @@
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: client-colour-mapping
+  namespace: clab-3-tier-leaf-spine-dcgw
+spec:
+  associationPolicyEntries:
+    - groupTagNames:
+        - red
+      associationTargets:
+        bridgeInterfaceSelectors:
+          - eda.nokia.com/ms-group = red
+    - groupTagNames:
+        - blue
+      associationTargets:
+        bridgeInterfaceSelectors:
+          - eda.nokia.com/ms-group = blue
+    - groupTagNames:
+        - green
+      associationTargets:
+        bridgeInterfaceSelectors:
+          - eda.nokia.com/ms-group = green

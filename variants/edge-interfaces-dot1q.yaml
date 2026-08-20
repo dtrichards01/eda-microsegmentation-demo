@@ -1,0 +1,164 @@
+# MS edge interfaces: full spec + Dot1q + coexist selector labels.
+# Apply this file only (do not apply labels-ms-coexist.yaml after â€” it has no spec and would wipe fields).
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-1-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/ms-group: red
+    eda.nokia.com/ms-vlan: "101"
+    eda.nokia.com/vnet-ms-vlan: bd-ms-vlan
+spec:
+  description: edge link to client1
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+    - enabled: true
+      interface: ethernet-1-5
+      lacpPortPriority: 32768
+      node: leaf-1
+  type: Interface
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-2-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/ms-group: blue
+    eda.nokia.com/ms-vlan: "101"
+    eda.nokia.com/vnet-ms-vlan: bd-ms-vlan
+spec:
+  description: edge link to client2
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+    - enabled: true
+      interface: ethernet-1-5
+      lacpPortPriority: 32768
+      node: leaf-2
+  type: Interface
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-3-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/ms-group: green
+    eda.nokia.com/ms-vlan: "101"
+    eda.nokia.com/vnet-ms-vlan: bd-ms-vlan
+spec:
+  description: edge link to client3
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+    - enabled: true
+      interface: ethernet-1-5
+      lacpPortPriority: 32768
+      node: leaf-3
+  type: Interface
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-5-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/ms-group: red
+    eda.nokia.com/ms-vlan: "102"
+    eda.nokia.com/vnet-ms-bridge: bd-ms-bridge
+    eda.nokia.com/vnet-ms-irb: bd-ms-irb
+    eda.nokia.com/vnet-ms-static: bd-ms-static
+    eda.nokia.com/vnet-ms-enf-router: bd-ms-enf-router
+    eda.nokia.com/vnet-ms-enf-bd: bd-ms-enf-bd
+spec:
+  description: edge link to client4
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+    - enabled: true
+      interface: ethernet-1-5
+      lacpPortPriority: 32768
+      node: leaf-5
+  type: Interface
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-6-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/ms-group: blue
+    eda.nokia.com/ms-vlan: "102"
+    eda.nokia.com/vnet-ms-bridge: bd-ms-bridge
+    eda.nokia.com/vnet-ms-irb: bd-ms-irb
+    eda.nokia.com/vnet-ms-static: bd-ms-static
+    eda.nokia.com/vnet-ms-enf-router: bd-ms-enf-router
+    eda.nokia.com/vnet-ms-enf-bd: bd-ms-enf-bd
+spec:
+  description: edge link to client5
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+    - enabled: true
+      interface: ethernet-1-5
+      lacpPortPriority: 32768
+      node: leaf-6
+  type: Interface
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: leaf-7-ethernet-1-5
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/ms-group: green
+    eda.nokia.com/ms-vlan: "102"
+    eda.nokia.com/vnet-ms-bridge: bd-ms-bridge
+    eda.nokia.com/vnet-ms-irb: bd-ms-irb
+    eda.nokia.com/vnet-ms-static: bd-ms-static
+    eda.nokia.com/vnet-ms-enf-router: bd-ms-enf-router
+    eda.nokia.com/vnet-ms-enf-bd: bd-ms-enf-bd
+spec:
+  description: edge link to client6
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+    - enabled: true
+      interface: ethernet-1-5
+      lacpPortPriority: 32768
+      node: leaf-7
+  type: Interface

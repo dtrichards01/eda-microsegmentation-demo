@@ -1,0 +1,189 @@
+apiVersion: services.eda.nokia.com/v2
+kind: VirtualNetwork
+metadata:
+  name: vnet-ms-static
+  namespace: clab-3-tier-leaf-spine-dcgw
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-E — StaticRoute association. Scoped leaf-6/7/8 only: leaf-6=blue (client6), leaf-7=green (client7), leaf-8=red (client8). VLAN 90; static-remote-green tags 172.16.91.0/24."
+  labels:
+    eda.nokia.com/ms-variant: static-route-association
+spec:
+  bridgeDomains:
+  - name: bd-ms-static
+    spec:
+      description: L2 BD for static-route association demo (leaf-6/7/8)
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      macLearning:
+        agingTimeSeconds: 300
+        enabled: true
+      type: EVPNVXLAN
+  bridgeInterfaces: []
+  irbInterfaces:
+  - name: irb-ms-static
+    spec:
+      bridgeDomain: bd-ms-static
+      description: Gateway 172.16.90.254/24
+      evpnRouteAdvertisementType:
+        arpDynamic: true
+        arpStatic: true
+        ndDynamic: true
+        ndStatic: true
+        rfc9135SymmetricMode: true
+      ipAddresses:
+      - ipv4Address:
+          ipPrefix: 172.16.90.254/24
+          primary: true
+      ipMTU: 1500
+      ipv4:
+        arpTimeoutSeconds: 14400
+        learnUnsolicitedARP: Disabled
+      router: router-ms-static
+      virtualIPDiscovery: []
+  protocols:
+    staticRoutes:
+    - name: static-remote-green
+      spec:
+        nexthopGroup:
+          blackhole: true
+          resolve: false
+        prefixes:
+        - 172.16.91.0/24
+        router: router-ms-static
+  routedInterfaces: []
+  routers:
+  - name: router-ms-static
+    spec:
+      description: Router for vnet-ms-static — no nodeSelectors (scoped via VLAN label selectors on leaf-6/7/8 only)
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      routerID: 10.6.6.1
+      type: EVPNVXLAN
+  vlans:
+  - name: vlan-ms-static-red
+    spec:
+      bridgeDomain: bd-ms-static
+      description: Red — leaf-8 / client8 (172.16.90.8)
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=red,eda.nokia.com/vnet-ms-static=bd-ms-static
+      vlanID: '90'
+  - name: vlan-ms-static-blue
+    spec:
+      bridgeDomain: bd-ms-static
+      description: Blue — leaf-6 / client6 (172.16.90.6)
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=blue,eda.nokia.com/vnet-ms-static=bd-ms-static
+      vlanID: '90'
+  - name: vlan-ms-static-green
+    spec:
+      bridgeDomain: bd-ms-static
+      description: Green — leaf-7 / client7 (172.16.90.7)
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=green,eda.nokia.com/vnet-ms-static=bd-ms-static
+      vlanID: '90'
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: ms-assoc-static
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: static-route-association
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-E — leaf-6=blue, leaf-7=green, leaf-8=red. static-remote-green→green; VLAN helpers tag clients."
+spec:
+  associationPolicyEntries:
+  - groupTagNames: [green]
+    associationTargets:
+      staticRoutes: [static-remote-green]
+  - groupTagNames: [red]
+    associationTargets:
+      vlans: [vlan-ms-static-red]
+  - groupTagNames: [blue]
+    associationTargets:
+      vlans: [vlan-ms-static-blue]
+  - groupTagNames: [green]
+    associationTargets:
+      vlans: [vlan-ms-static-green]
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: MicroSegmentationPolicy
+metadata:
+  name: ms-policy-static
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: static-route-association
+  annotations:
+    eda.nokia.com/ms-demo-description: "Policy for vnet-ms-static — host rules + static-route green tag on 172.16.91.0/24"
+spec:
+  serviceTargets:
+    virtualNetworks:
+    - vnet-ms-static
+  entries:
+  - description: allow same-group red
+    bidirectional: true
+    match:
+      sourceGroupTag: [red]
+      destinationGroupTag: [red]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow blue-blue
+    bidirectional: true
+    match:
+      sourceGroupTag: [blue]
+      destinationGroupTag: [blue]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow green-green
+    bidirectional: true
+    match:
+      sourceGroupTag: [green]
+      destinationGroupTag: [green]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow red to/from blue
+    bidirectional: true
+    match:
+      sourceGroupTag: [red]
+      destinationGroupTag: [blue]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow blue to/from green
+    bidirectional: true
+    match:
+      sourceGroupTag: [blue]
+      destinationGroupTag: [green]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: block red to/from green
+    bidirectional: true
+    match:
+      sourceGroupTag: [red]
+      destinationGroupTag: [green]
+    action:
+      forward: Drop
+      collectStats: true
+      log: true
+  - description: default deny
+    bidirectional: true
+    match: {}
+    action:
+      forward: Drop
+      collectStats: true
+      log: false

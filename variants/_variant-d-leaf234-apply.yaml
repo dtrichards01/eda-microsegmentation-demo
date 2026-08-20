@@ -1,0 +1,206 @@
+﻿apiVersion: services.eda.nokia.com/v2
+kind: VirtualNetwork
+metadata:
+  name: vnet-ms-irb
+  namespace: clab-3-tier-leaf-spine-dcgw
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-D — GroupTag on IRB (gateway segment). Scoped leaf-2/3/4: leaf-2=blue (client2), leaf-3=green (client3), leaf-4=red (client4). VLAN 85; irb-ms-irb→gateway."
+  labels:
+    eda.nokia.com/ms-variant: irb-interface-association
+spec:
+  bridgeDomains:
+  - name: bd-ms-irb
+    spec:
+      description: L2 BD for IRB-interface association demo (leaf-2/3/4)
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      macLearning:
+        agingTimeSeconds: 300
+        enabled: true
+      type: EVPNVXLAN
+  bridgeInterfaces: []
+  irbInterfaces:
+  - name: irb-ms-irb
+    spec:
+      bridgeDomain: bd-ms-irb
+      description: Gateway IRB association target for GroupTag gateway
+      evpnRouteAdvertisementType:
+        arpDynamic: true
+        arpStatic: true
+        ndDynamic: true
+        ndStatic: true
+        rfc9135SymmetricMode: true
+      ipAddresses:
+      - ipv4Address:
+          ipPrefix: 172.16.85.254/24
+          primary: true
+      ipMTU: 1500
+      ipv4:
+        arpTimeoutSeconds: 14400
+        learnUnsolicitedARP: Disabled
+      router: router-ms-irb
+      virtualIPDiscovery: []
+  routedInterfaces: []
+  routers:
+  - name: router-ms-irb
+    spec:
+      description: Router for vnet-ms-irb — gateway-centric GBP rules (no role=leaf selector)
+      encapOptions:
+        vxlan:
+          tunnelIndexPool: tunnel-index-pool
+          vniPool: vni-pool
+      eviPool: evi-pool
+      routerID: 10.5.5.1
+      type: EVPNVXLAN
+  vlans:
+  - name: vlan-ms-irb-red
+    spec:
+      bridgeDomain: bd-ms-irb
+      description: Red — leaf-4 / client4 (172.16.85.4)
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=red,eda.nokia.com/vnet-ms-irb=bd-ms-irb
+      vlanID: '85'
+  - name: vlan-ms-irb-blue
+    spec:
+      bridgeDomain: bd-ms-irb
+      description: Blue — leaf-2 / client2 (172.16.85.2)
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=blue,eda.nokia.com/vnet-ms-irb=bd-ms-irb
+      vlanID: '85'
+  - name: vlan-ms-irb-green
+    spec:
+      bridgeDomain: bd-ms-irb
+      description: Green — leaf-3 / client3 (172.16.85.3)
+      interfaceSelectors:
+      - eda.nokia.com/ms-group=green,eda.nokia.com/vnet-ms-irb=bd-ms-irb
+      vlanID: '85'
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: ms-assoc-irb
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: irb-interface-association
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-D — leaf-2=blue, leaf-3=green, leaf-4=red. IRB irb-ms-irb→gateway; VLAN helpers tag clients."
+spec:
+  associationPolicyEntries:
+  - groupTagNames: [gateway]
+    associationTargets:
+      irbInterfaces: [irb-ms-irb]
+  - groupTagNames: [red]
+    associationTargets:
+      vlans: [vlan-ms-irb-red]
+  - groupTagNames: [blue]
+    associationTargets:
+      vlans: [vlan-ms-irb-blue]
+  - groupTagNames: [green]
+    associationTargets:
+      vlans: [vlan-ms-irb-green]
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: MicroSegmentationPolicy
+metadata:
+  name: ms-policy-irb
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: irb-interface-association
+  annotations:
+    eda.nokia.com/ms-demo-description: "Policy for vnet-ms-irb — gateway IRB rules + host rules"
+spec:
+  serviceTargets:
+    virtualNetworks:
+    - vnet-ms-irb
+  entries:
+  - description: allow red to/from gateway IRB
+    bidirectional: true
+    match:
+      sourceGroupTag: [red]
+      destinationGroupTag: [gateway]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow blue to/from gateway IRB
+    bidirectional: true
+    match:
+      sourceGroupTag: [blue]
+      destinationGroupTag: [gateway]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow green to/from gateway IRB
+    bidirectional: true
+    match:
+      sourceGroupTag: [green]
+      destinationGroupTag: [gateway]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow same-group red
+    bidirectional: true
+    match:
+      sourceGroupTag: [red]
+      destinationGroupTag: [red]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow blue-blue
+    bidirectional: true
+    match:
+      sourceGroupTag: [blue]
+      destinationGroupTag: [blue]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow green-green
+    bidirectional: true
+    match:
+      sourceGroupTag: [green]
+      destinationGroupTag: [green]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow red to/from blue
+    bidirectional: true
+    match:
+      sourceGroupTag: [red]
+      destinationGroupTag: [blue]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: allow blue to/from green
+    bidirectional: true
+    match:
+      sourceGroupTag: [blue]
+      destinationGroupTag: [green]
+    action:
+      forward: Accept
+      collectStats: true
+      log: false
+  - description: block red to/from green
+    bidirectional: true
+    match:
+      sourceGroupTag: [red]
+      destinationGroupTag: [green]
+    action:
+      forward: Drop
+      collectStats: true
+      log: true
+  - description: default deny
+    bidirectional: true
+    match: {}
+    action:
+      forward: Drop
+      collectStats: true
+      log: false

@@ -1,0 +1,21 @@
+# Office lock files
+~$*
+**/~$*
+
+.env
+.env.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Ephemeral rollout / probe artifacts (see docs/ for canonical guides)
+docs/tmp/
+test-results/
+
+# Cluster status dumps (not source manifests)
+variants/_*status*.yaml
+variants/_vnet-*-status.yaml
+variants/_assoc-*-status.yaml
+variants/_patch-*.json

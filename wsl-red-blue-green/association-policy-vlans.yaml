@@ -1,0 +1,22 @@
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: client-colour-mapping
+  namespace: clab-3-tier-leaf-spine-dcgw
+spec:
+  associationPolicyEntries:
+    - groupTagNames:
+        - red
+      associationTargets:
+        vlans:
+          - vlan-red-ms
+    - groupTagNames:
+        - blue
+      associationTargets:
+        vlans:
+          - vlan-blue-ms
+    - groupTagNames:
+        - green
+      associationTargets:
+        vlans:
+          - vlan-green-ms

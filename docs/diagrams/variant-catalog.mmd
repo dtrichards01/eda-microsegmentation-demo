@@ -1,0 +1,47 @@
+---
+config:
+  theme: base
+  themeVariables:
+    fontSize: 14px
+    fontFamily: Segoe UI, Arial, sans-serif
+---
+flowchart TB
+  subgraph rowA["Variant A — VLAN association · virtualNetworks enforcement"]
+    A["vnet-ms-vlan · VLAN 101<br/>client1–3 → leaf-1/2/3"]
+  end
+
+  subgraph rowB["Variant B — BridgeInterface"]
+    B["vnet-ms-bridge · VLAN 102"]
+  end
+  subgraph rowC["Variant C — RoutedInterface"]
+    C["vnet-ms-routed · VLAN 103"]
+  end
+  subgraph rowD["Variant D — IRBInterface"]
+    D["vnet-ms-irb · VLAN 104"]
+  end
+  subgraph rowE["Variant E — StaticRoute"]
+    E["vnet-ms-static · VLAN 106"]
+  end
+  subgraph rowF["Variant F — VLAN · routers enforcement"]
+    F["vnet-ms-enf-router · VLAN 107"]
+  end
+  subgraph rowG["Variant G — VLAN · bridgeDomains enforcement"]
+    G["vnet-ms-enf-bd · VLAN 108 · L2 only"]
+  end
+
+  shared["Shared edge: client4/5/6 → leaf-4/5/8 · ethernet-1/5 Dot1q"]
+
+  rowB --> shared
+  rowC --> shared
+  rowD --> shared
+  rowE --> shared
+  rowF --> shared
+  rowG --> shared
+
+  classDef a fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
+  classDef bfg fill:#f1f5f9,stroke:#64748b,color:#0f172a
+  classDef hub fill:#fef3c7,stroke:#d97706,color:#78350f
+
+  class A a
+  class B,C,D,E,F,G bfg
+  class shared hub

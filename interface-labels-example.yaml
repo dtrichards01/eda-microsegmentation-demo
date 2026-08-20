@@ -1,0 +1,47 @@
+# EXAMPLE — edit names to match your TopoLink / Interface CRs on leaf edge ports.
+# Labels drive both vnet vlan attachment and AssociationPolicy group tagging.
+#
+# Typical pattern: metadata.name = <leaf-node>-<normalized-interface>
+# e.g. srl-leaf-1-ethernet-1-1-1
+---
+apiVersion: interfaces.eda.nokia.com/v2
+kind: Interface
+metadata:
+  name: srl-leaf-1-ethernet-1-1-1
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: red
+    eda.nokia.com/vnet-ms-demo: bd-ms
+spec:
+  members:
+    - interface: ethernet-1/1/1
+      node: srl-leaf-1
+  type: interface
+---
+apiVersion: interfaces.eda.nokia.com/v2
+kind: Interface
+metadata:
+  name: srl-leaf-2-ethernet-1-1-1
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: blue
+    eda.nokia.com/vnet-ms-demo: bd-ms
+spec:
+  members:
+    - interface: ethernet-1/1/1
+      node: srl-leaf-2
+  type: interface
+---
+apiVersion: interfaces.eda.nokia.com/v2
+kind: Interface
+metadata:
+  name: srl-leaf-3-ethernet-1-1-1
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-group: green
+    eda.nokia.com/vnet-ms-demo: bd-ms
+spec:
+  members:
+    - interface: ethernet-1/1/1
+      node: srl-leaf-3
+  type: interface

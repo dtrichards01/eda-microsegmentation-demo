@@ -1,0 +1,29 @@
+---
+config:
+  theme: base
+  themeVariables:
+    fontSize: 15px
+    fontFamily: Segoe UI, Arial, sans-serif
+---
+flowchart TB
+  subgraph VA["Variant A test hosts"]
+    c1["client1 · red"] --> l1["leaf-1"]
+    c2["client2 · blue"] --> l2["leaf-2"]
+    c3["client3 · green"] --> l3["leaf-3"]
+  end
+
+  subgraph VBG["Variants B–G test hosts"]
+    c4["client4 · red"] --> l4["leaf-4"]
+    c5["client5 · blue"] --> l5["leaf-5"]
+    c6["client6 · green"] --> l8["leaf-8"]
+  end
+
+  classDef red fill:#fecaca,stroke:#dc2626,color:#7f1d1d
+  classDef blue fill:#bfdbfe,stroke:#2563eb,color:#1e3a8a
+  classDef green fill:#bbf7d0,stroke:#16a34a,color:#14532d
+  classDef leaf fill:#f8fafc,stroke:#475569,color:#0f172a
+
+  class c1,c4 red
+  class c2,c5 blue
+  class c3,c6 green
+  class l1,l2,l3,l4,l5,l8 leaf

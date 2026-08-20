@@ -1,0 +1,22 @@
+---
+config:
+  theme: base
+  themeVariables:
+    fontSize: 16px
+    fontFamily: Segoe UI, Arial, sans-serif
+---
+flowchart TB
+  G["GREEN"]
+  R["RED"]
+  B["BLUE"]
+  R ---|"allow ↔"| B
+  B ---|"allow ↔"| G
+  R -.->|"drop"| G
+
+  classDef red fill:#fecaca,stroke:#dc2626,color:#7f1d1d,font-weight:bold
+  classDef blue fill:#bfdbfe,stroke:#2563eb,color:#1e3a8a,font-weight:bold
+  classDef green fill:#bbf7d0,stroke:#16a34a,color:#14532d,font-weight:bold
+
+  class R red
+  class B blue
+  class G green

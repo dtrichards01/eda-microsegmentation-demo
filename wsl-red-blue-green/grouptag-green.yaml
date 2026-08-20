@@ -1,0 +1,8 @@
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: GroupTag
+metadata:
+  name: green
+  namespace: clab-3-tier-leaf-spine-dcgw
+spec:
+  description: Users in Green group
+  scope: Local

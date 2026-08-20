@@ -1,0 +1,154 @@
+# Association policies — one per microsegmentation variant (dedicated vnet-ms-* services).
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: ms-assoc-vlan
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: vlan-association
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-A — tags via VLANs vlan-ms-vlan-red / blue / green on vnet-ms-vlan"
+spec:
+  associationPolicyEntries:
+    - groupTagNames: [red]
+      associationTargets:
+        vlans: [vlan-ms-vlan-red]
+    - groupTagNames: [blue]
+      associationTargets:
+        vlans: [vlan-ms-vlan-blue]
+    - groupTagNames: [green]
+      associationTargets:
+        vlans: [vlan-ms-vlan-green]
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: ms-assoc-bridge
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: bridge-interface-association
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-B - tags via bridgeInterfaces bi-red-5 / bi-blue-6 / bi-green-7"
+spec:
+  associationPolicyEntries:
+    - groupTagNames: [red]
+      associationTargets:
+        bridgeInterfaces: [bi-red-5]
+    - groupTagNames: [blue]
+      associationTargets:
+        bridgeInterfaces: [bi-blue-6]
+    - groupTagNames: [green]
+      associationTargets:
+        bridgeInterfaces: [bi-green-7]
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: ms-assoc-routed
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: routed-interface-association
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-C — tags via routedInterfaces ri-red-5 / ri-blue-6 / ri-green-7"
+spec:
+  associationPolicyEntries:
+    - groupTagNames: [red]
+      associationTargets:
+        routedInterfaces: [ri-red-5]
+    - groupTagNames: [blue]
+      associationTargets:
+        routedInterfaces: [ri-blue-6]
+    - groupTagNames: [green]
+      associationTargets:
+        routedInterfaces: [ri-green-7]
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: ms-assoc-irb
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: irb-interface-association
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-D — leaf-2=blue, leaf-3=green, leaf-4=red. IRB irb-ms-irb→gateway; VLAN helpers tag clients at ingress (enforcement at IRB)."
+spec:
+  associationPolicyEntries:
+    - groupTagNames: [gateway]
+      associationTargets:
+        irbInterfaces: [irb-ms-irb]
+    - groupTagNames: [red]
+      associationTargets:
+        vlans: [vlan-ms-irb-red]
+    - groupTagNames: [blue]
+      associationTargets:
+        vlans: [vlan-ms-irb-blue]
+    - groupTagNames: [green]
+      associationTargets:
+        vlans: [vlan-ms-irb-green]
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: ms-assoc-static
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: static-route-association
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-E — leaf-6=blue, leaf-7=green, leaf-8=red. static-remote-green→green (172.16.91.0/24); VLAN helpers tag clients."
+spec:
+  associationPolicyEntries:
+    - groupTagNames: [green]
+      associationTargets:
+        staticRoutes: [static-remote-green]
+    - groupTagNames: [red]
+      associationTargets:
+        vlans: [vlan-ms-static-red]
+    - groupTagNames: [blue]
+      associationTargets:
+        vlans: [vlan-ms-static-blue]
+    - groupTagNames: [green]
+      associationTargets:
+        vlans: [vlan-ms-static-green]
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: ms-assoc-enf-router
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: enforcement-router-target
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-F — VLAN tagging for clients (enforcement is on router target in MSP)"
+spec:
+  associationPolicyEntries:
+    - groupTagNames: [red]
+      associationTargets:
+        vlans: [vlan-enf-router-red]
+    - groupTagNames: [blue]
+      associationTargets:
+        vlans: [vlan-enf-router-blue]
+    - groupTagNames: [green]
+      associationTargets:
+        vlans: [vlan-enf-router-green]
+---
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: AssociationPolicy
+metadata:
+  name: ms-assoc-enf-bd
+  namespace: clab-3-tier-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/ms-variant: enforcement-bridge-domain-target
+  annotations:
+    eda.nokia.com/ms-demo-description: "VARIANT-G — VLAN tagging; enforcement on bridgeDomains in MSP"
+spec:
+  associationPolicyEntries:
+    - groupTagNames: [red]
+      associationTargets:
+        vlans: [vlan-enf-bd-red]
+    - groupTagNames: [blue]
+      associationTargets:
+        vlans: [vlan-enf-bd-blue]
+    - groupTagNames: [green]
+      associationTargets:
+        vlans: [vlan-enf-bd-green]

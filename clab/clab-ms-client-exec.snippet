@@ -1,0 +1,34 @@
+# Clab exec snippets for 3-tier-leaf-spine-dcgw (Dot1q MS demos)
+#
+# Lab: name: 3-tier-leaf-spine-dcgw  → containers: clab-3-tier-leaf-spine-dcgw-client1
+# Copy client-config-ms-vlan.sh to configs/ beside your clab yaml, then replace client exec blocks.
+#
+# Variant A (vnet-ms-vlan, VLAN 101) — leaf-1/2/3
+#   client1 → leaf-1   client2 → leaf-2   client3 → leaf-3
+#
+# Variants B–G (VLAN 102–108) — client4/5/6 → leaf-4/5/8
+#   Use configure-client-ms-eth1.py after deploy (recommended) or exec below.
+
+# --- Variant A (boot-time example) ---
+# client1:
+#   binds:
+#     - ../eda-microsegmentation-demo/configs/client-config-ms-vlan.sh:/client-config-ms-vlan.sh
+#   exec:
+#     - bash /client-config-ms-vlan.sh 101 172.16.101.1/24 172.16.101.254 172.16.0.0/16
+# client2:
+#   exec:
+#     - bash /client-config-ms-vlan.sh 101 172.16.101.2/24 172.16.101.254 172.16.0.0/16
+# client3:
+#   exec:
+#     - bash /client-config-ms-vlan.sh 101 172.16.101.4/24 172.16.101.254 172.16.0.0/16
+#
+# Note: stock clab yaml uses 172.16.201.x on client3/4/6 — MS variant A needs 172.16.101.x on VLAN 101.
+
+# --- Variant B (vnet-ms-bridge, VLAN 102) ---
+# client4: bash /client-config-ms-vlan.sh 102 172.16.102.1/24 172.16.102.254 172.16.0.0/16
+# client5: bash /client-config-ms-vlan.sh 102 172.16.102.2/24 172.16.102.254 172.16.0.0/16
+# client6: bash /client-config-ms-vlan.sh 102 172.16.102.4/24 172.16.102.254 172.16.0.0/16
+
+# Runtime (no clab redeploy):
+#   python3 scripts/configure-client-ms-eth1.py --variant A --apply
+#   python3 scripts/configure-client-ms-eth1.py --variant B --apply
