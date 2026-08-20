@@ -2,6 +2,9 @@
 ~$*
 **/~$*
 
+# Local commit helpers (not for repo)
+commit-msg.txt
+
 .env
 .env.*
 
