@@ -209,6 +209,8 @@ python3 scripts/run-ms-tests.py E
 
 Architecture and per-variant design: `docs/EDA-Microsegmentation.md` §12.4.
 
+**Word exports:** regenerate from markdown with `bash scripts/generate-word-docs.sh` (requires pandoc). Close open `.docx` files in Word before regenerating.
+
 ---
 
 *Report updated 2026-08-20 after scoped Variant D/E validation. Supersedes July 2026 sections for D and E.*

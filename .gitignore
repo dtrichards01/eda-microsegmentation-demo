@@ -5,6 +5,9 @@
 # Local commit helpers (not for repo)
 commit-msg.txt
 
+# Word lock / pending overwrite
+*.docx.new
+
 .env
 .env.*
 

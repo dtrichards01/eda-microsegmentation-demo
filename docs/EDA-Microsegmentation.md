@@ -454,6 +454,8 @@ See **`docs/EDA-Microsegmentation-Test-Report.md`** for ping matrices and sign-o
 
 Rollout artifacts (gitignored): `docs/tmp/variant-d-leaf234-*`, `docs/tmp/variant-e-leaf678-*`.
 
+**Word export:** `docs/EDA-Microsegmentation.docx` — regenerate with `bash scripts/generate-word-docs.sh` (requires pandoc).
+
 ---
 
 *Document version: scoped D/E validation, August 2026. Repo: https://github.com/dtrichards01/eda-microsegmentation-demo*
