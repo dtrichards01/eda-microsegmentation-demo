@@ -1,0 +1,19 @@
+### A: client-1 (leaf-1) -> 172.16.75.3 (leaf-3)
+  leaf-1 bd-ms-vlan             entry 55  +10  "block red to/from green"
+### B: client-5 (leaf-5) -> 172.16.76.7 (leaf-7)
+  leaf-5 bd-ms-bridge           entry 55  +10  "block red to/from green"
+### C: client-1 (leaf-1) -> 172.16.82.10 (leaf-4)
+  leaf-1 router-ms-routed       entry 55  +10  "block red to/from green"
+### D: client-4 (leaf-4) -> 172.16.85.3 (leaf-3)
+  leaf-4 bd-ms-irb              entry 85  +10  "block red to/from green"
+### E: client-8 (leaf-8) -> 172.16.90.7 (leaf-7)
+  leaf-8 bd-ms-static           entry 55  +10  "block red to/from green"
+### E-static: client-8 (leaf-8) -> 172.16.91.1 (leaf-7)
+  leaf-8 router-ms-static       entry 55  +10  "block red to/from green"
+### F: client-5 (leaf-5) -> 172.16.142.8 (leaf-8)
+  leaf-5 router-ms-enf-router   entry 55  +10  "block red to/from green"
+### G: client-5 (leaf-5) -> 172.16.110.8 (leaf-8)
+  leaf-5 bd-ms-enf-bd           entry 55  +9   "block red to/from green"
+  leaf-8 bd-ms-enf-bd           entry 65  +1   "default deny"
+### H: client-1 (leaf-1) -> 172.16.121.7 (leaf-7)
+  leaf-1 router-ms-dci-1        entry 55  +10  "block red to/from green"

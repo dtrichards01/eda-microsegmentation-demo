@@ -125,14 +125,14 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 
 | Item | Detail |
 |------|--------|
-| **Used for** | **L3 gateway-centric** enforcement: clients tagged at ingress (VLAN); gateway tagged on IRB. |
+| **Used for** | Tagging the **gateway (IRB)** as its own group alongside VLAN-tagged clients. |
 | **Association** | `ms-assoc-irb`: `irb-ms-irb` → **gateway**; `vlan-ms-irb-red/blue/green` → red/blue/green. **All four entries required.** |
-| **Enforcement** | `ms-policy-irb` → `virtualNetworks: [vnet-ms-irb]`. Filter decision at **IRB**, not L2 VLAN bridge alone. |
+| **Enforcement** | `ms-policy-irb` → `virtualNetworks: [vnet-ms-irb]`. The ACL is in both `bd-ms-irb` and `router-ms-irb`; client-to-client drops happen in the **bridge domain** on the sending leaf (shared subnet, never routed). Verified with counters: Test Report §0.9. |
 | **Service** | `172.16.85.0/24`, IRB `172.16.85.254`, VLAN **85**. |
 | **Scope (validated)** | **leaf-2=blue**, **leaf-3=green**, **leaf-4=red** — client2/3/4, IPs `172.16.85.2/3/4`. Apply: `variants/_variant-d-leaf234-apply.yaml`. |
 | **Status** | **Validated** (2026-08-20). |
 
-**What it proves:** IRB-level GBP with ingress VLAN tagging; IRB-only association (gateway tag alone) is **insufficient** — client VLAN associations required.
+**What it proves:** An IRB can be an association target (gateway tag) next to VLAN-tagged clients; IRB-only association (gateway tag alone) is **insufficient** — client VLAN associations required. Tagging the IRB does not move enforcement to the IRB.
 
 ### 2.8 Variant E — StaticRoute + VLAN association (`vnet-ms-static`)
 
@@ -341,7 +341,7 @@ In the generator, the red ↔ green rule uses `log: true`; allows and the defaul
 | **Lab / connectivity tests** | + 3 same-group allows |
 | **Auditable deny of red ↔ green** | + explicit red↔green Drop with `log: true` (redundant for enforcement, valid for ops) |
 | **Explicit zero-trust tail** | + `match: {}` Drop as last entry |
-| **Gateway-centric (IRB variant)** | + red/blue/green ↔ gateway allows **before** host rules |
+| **Gateway tagged (IRB variant)** | + red/blue/green ↔ gateway allows **before** host rules |
 
 Choose **minimal allows** for simplicity; add **explicit combinations** when counters, logs, or readable policy intent matter more than the shortest YAML.
 
@@ -430,16 +430,18 @@ GBP ACL: blue → green → **Accept**.
 
 ## 6. Where policy is applied (by variant)
 
-| Variant | Classification (GroupTag binding) | GBP enforcement point |
-|---------|-------------------------------------|-------------------------|
-| **A** | VLAN objects on edge subifs | VirtualNetwork (L2 tag + L3 IRB path) |
-| **B** | BridgeInterface CRs | VirtualNetwork |
-| **C** | RoutedInterface CRs | VirtualNetwork (needs active `lpm-source-lookup`, §2.12) |
-| **D** | VLAN (clients) + IRB (gateway) | VirtualNetwork — decision at **IRB** |
-| **E** | VLAN (clients) + StaticRoute (prefix) | VirtualNetwork |
-| **F** | VLAN objects | **Router** CR (`router-ms-enf-router`) |
-| **G** | VLAN objects | **BridgeDomain** CR (`bd-ms-enf-bd`) — L2 only |
-| **H** | VLAN objects in both DCs | Both VirtualNetworks; the sending leaf drops using the remote host's tag learned over the DCI |
+| Variant | Classification (GroupTag binding) | Policy target | Red↔green dropped by (sending leaf) |
+|---------|-------------------------------------|---------------|-------------------------------------|
+| **A** | VLAN objects on edge subifs | VirtualNetwork | Bridge domain `bd-ms-vlan` |
+| **B** | BridgeInterface CRs | VirtualNetwork | Bridge domain `bd-ms-bridge` |
+| **C** | RoutedInterface CRs | VirtualNetwork (needs active `lpm-source-lookup`, §2.12) | Router `router-ms-routed` (no bridge domain) |
+| **D** | VLAN (clients) + IRB (gateway) | VirtualNetwork | Bridge domain `bd-ms-irb` |
+| **E** | VLAN (clients) + StaticRoute (prefix) | VirtualNetwork | Hosts: `bd-ms-static`; static prefix: router `router-ms-static` |
+| **F** | VLAN objects | **Router** CR | Router `router-ms-enf-router` |
+| **G** | VLAN objects | **BridgeDomain** CR — L2 only | Bridge domain `bd-ms-enf-bd` |
+| **H** | VLAN objects in both DCs | Both VirtualNetworks | Router `router-ms-dci-1` / `-2`, before the DCI |
+
+A VirtualNetwork target puts the same ACL in both the bridge domain and the router; a Router or BridgeDomain target puts it only there. The packet is checked by the first network-instance it enters that holds the ACL: bridged traffic in the bridge domain, routed traffic in the router (entered through the IRB, which has no ACL of its own). Counter evidence: Test Report §0.9.
 
 The GBP ACL applies to packets entering any subinterface of the network-instance, including from VXLAN, so the sending and the receiving leaf both evaluate traffic. BUM traffic and packets extracted to the CPU (ARP, pings to IRB/gateway addresses) bypass it, so gateway pings prove reachability, not policy.
 
@@ -635,7 +637,7 @@ Rollout artifacts (gitignored): `docs/tmp/variant-d-leaf234-*`, `docs/tmp/varian
 | **A** | VLAN → GroupTag; enforce on VirtualNetwork | **Validated** |
 | **B** | BridgeInterface → GroupTag (explicit BI names required) | **Validated** |
 | **C** | RoutedInterface → GroupTag | **Validated** on Talos #2 (needs active `lpm-source-lookup`) |
-| **D** | IRB gateway tag + VLAN client tags; enforce at IRB | **Validated** |
+| **D** | IRB gateway tag + VLAN client tags; enforce on VirtualNetwork | **Validated** |
 | **E** | StaticRoute prefix tag + VLAN client tags | **Validated** |
 | **F** | VLAN tags; enforce on **router** not VirtualNetwork | **Validated** on Talos #2 |
 | **G** | VLAN tags; enforce on **bridgeDomain** (L2 only) | **Validated** on Talos #2 |

@@ -180,6 +180,46 @@ EVPN → IPVPN → EVPN. The dcgw-3 IPVPN table holds a per-host `/32` for each 
 RD `65471:2`; `.121.5`, `.121.7` under RD `65481:2`) alongside the `/24`s. Those per-host routes come from
 `hostRoutePopulate.dynamic` on the IRBs and let each host keep its own tag.
 
+### 0.9 Enforcement points: which network-instance drops the packet
+
+The GBP ACL lives in SR Linux network-instances, not on interfaces. The policy target decides which instances get it:
+
+- **VirtualNetwork target (A–E, H):** the same ACL goes into both the bridge domain (mac-vrf, `bd-ms-*`) and the
+  router (ip-vrf, `router-ms-*`) on every leaf in scope.
+- **Router target (F):** only `router-ms-enf-router` has the ACL; the per-colour bridge domains
+  (`bd-ms-enf-router-red/blue/green`) have none and only carry the tags.
+- **BridgeDomain target (G):** only `bd-ms-enf-bd`; there is no router.
+- **C** has no bridge domain, so the router is the only place it can enforce.
+
+A packet is checked by the first network-instance it enters that holds the ACL. Bridged (same subnet) traffic is
+dropped in the bridge domain. Routed traffic is dropped in the router. The IRB has no ACL of its own: it is the
+router's subinterface, so a routed packet enters the router through it and the router's ACL acts there. The
+association target (VLAN, BridgeInterface, IRB…) only decides which tag an endpoint gets.
+
+Verified with `talos/scripts/gbp-trace.sh`, which runs 10 red→green pings per test and reports which ACL counters
+on the sending and receiving leaves increased (raw output: `talos/evidence/cap-enforcement-trace.txt`):
+
+| Test | Path | Dropped by |
+|------|------|------------|
+| A (VLAN) | Bridged | leaf-1 `bd-ms-vlan` entry 55 "block red to/from green", +10 |
+| B (BridgeInterface) | Bridged | leaf-5 `bd-ms-bridge` entry 55, +10 |
+| C (RoutedInterface) | Routed, no bridge domain | leaf-1 `router-ms-routed` entry 55, +10 |
+| D (IRB + VLAN) | Bridged | leaf-4 `bd-ms-irb` entry 85, +10 |
+| E hosts | Bridged | leaf-8 `bd-ms-static` entry 55, +10 |
+| E static route (172.16.91.1) | Routed | leaf-8 `router-ms-static` entry 55, +10 |
+| F (policy on Router) | Routed | leaf-5 `router-ms-enf-router` entry 55, +10 |
+| G (policy on BridgeDomain) | Bridged | leaf-5 `bd-ms-enf-bd` entry 55, +9; leaf-8 `bd-ms-enf-bd` "default deny", +1 |
+| H (across DCs) | Routed over the DCI | leaf-1 `router-ms-dci-1` entry 55, +10 |
+
+Every drop happens on the **sending leaf**; no receiving leaf counted a red↔green drop. The single G packet on
+leaf-8 was most likely flooded (G is L2-only and was idle, so its MAC entries had aged out). Flooded traffic
+bypasses the sending leaf's ACL, and leaf-8 had not yet relearned client-5's tagged MAC, so it saw source tag 0
+and the default deny dropped it.
+
+D's client-to-client drops are in the bridge domain, not at the IRB: red and green share 172.16.85.0/24, so
+their traffic is never routed. D's IRB tag (`ms-gateway`) only matters for traffic addressed to the gateway, and
+pings to the gateway are extracted to the CPU and bypass the ACL (§0.4).
+
 ---
 
 ## 1. Executive summary — WSL lab (2026-08-20)
