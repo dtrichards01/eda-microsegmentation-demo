@@ -30,11 +30,11 @@ echo "== Tenancy (eth2, untouched)"
 chk ok   "tenant-a client-1 -> client-2"        client-1 10.99.0.2
 
 echo "== Firewall"
-chk ok   "PAN inside -> outside"                fw-client-pan-inside  10.31.2.10
+chk ok   "PAN inside -> outside"                fw-demo-red-1         10.31.2.10
 chk ok   "PAN outside -> inside"                fw-client-pan-outside 10.31.1.10
 chk ok   "FG1 inside -> outside"                fw-client-fg-inside   10.21.2.10
 chk ok   "FG1 outside -> inside"                fw-client-fg-outside  10.21.1.10
-chk fail "PAN zone -> FG zone"                  fw-client-pan-inside  10.21.2.10
+chk fail "PAN zone -> FG zone"                  fw-demo-red-1         10.21.2.10
 
 echo "== Isolation"
 chk fail "DCI client-1 -> firewall client"      client-1 10.31.1.10
