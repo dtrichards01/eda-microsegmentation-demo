@@ -56,6 +56,17 @@ EDA microsegmentation uses **two independent choices**:
 
 **Enforcement** applies ordered `policyEntries` to `serviceTargets`: `virtualNetworks`, `routers`, or `bridgeDomains`.
 
+There is no target for a single IP address or MAC. Every host behind an associated subinterface gets the tag, which is the main difference from firewall address objects. See `docs/FIREWALL-RULES-TO-EDA-GBP.md`.
+
+**Creation order (verified on Talos #2 with dry-runs 137206–137209, `talos/evidence/cap-order-tests.txt`):**
+
+- A MicroSegmentationPolicy (or AssociationPolicy) naming a GroupTag that does not exist fails the transaction with `missing dependency of type Group tag with name <tag>`. Nothing reaches the nodes.
+- Putting the GroupTag and the policy in the **same transaction** works. EDA allocates the tag value itself (the GroupTag spec is only a description and a scope).
+- A policy does not need an AssociationPolicy first: a policy on a bridge domain with no association for one of its tags was accepted and programmed.
+- Deleting a GroupTag that is in use fails, with the same error from every AssociationPolicy and MicroSegmentationPolicy that refers to it. Delete in reverse order.
+
+So the order is: VirtualNetwork and interface labels → GroupTags → AssociationPolicy and MicroSegmentationPolicy (either order, or all in one transaction).
+
 **Important:** Association does **not** equal enforcement. Extra association entries (for example VLAN helpers in Variant D, or a static route in Variant E) supply **tags**; they do not by themselves move the filter to L2 unless enforcement targets `bridgeDomains` (Variant G).
 
 Workflow (from EDA docs):

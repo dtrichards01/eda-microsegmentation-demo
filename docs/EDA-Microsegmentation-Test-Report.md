@@ -211,10 +211,13 @@ on the sending and receiving leaves increased (raw output: `talos/evidence/cap-e
 | G (policy on BridgeDomain) | Bridged | leaf-5 `bd-ms-enf-bd` entry 55, +9; leaf-8 `bd-ms-enf-bd` "default deny", +1 |
 | H (across DCs) | Routed over the DCI | leaf-1 `router-ms-dci-1` entry 55, +10 |
 
-Every drop happens on the **sending leaf**; no receiving leaf counted a red↔green drop. The single G packet on
-leaf-8 was most likely flooded (G is L2-only and was idle, so its MAC entries had aged out). Flooded traffic
-bypasses the sending leaf's ACL, and leaf-8 had not yet relearned client-5's tagged MAC, so it saw source tag 0
-and the default deny dropped it.
+Every drop happens on the **sending leaf**; no receiving leaf counted a red↔green drop, apart from one G packet.
+That packet was reproduced (`talos/evidence/cap-g-first-packet.txt`). With G idle long enough for its MAC
+entries (300 s aging) and the clients' ARP entries to expire, one ping raised leaf-8's "default deny" by 1 and
+nothing on leaf-5; five more pings raised leaf-5's red↔green entry by 5. The first packet gets past leaf-5's ACL
+and reaches leaf-8 with source tag 0, which fits it being flooded as unknown unicast (flooded traffic bypasses the
+ACL) before the new EVPN type-2 routes arrive. The flooding itself happens within milliseconds and was not
+captured. Without a default deny, that one cold red→green packet would be delivered.
 
 D's client-to-client drops are in the bridge domain, not at the IRB: red and green share 172.16.85.0/24, so
 their traffic is never routed. D's IRB tag (`ms-gateway`) only matters for traffic addressed to the gateway, and

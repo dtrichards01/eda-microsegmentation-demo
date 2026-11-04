@@ -20,7 +20,9 @@ Standard **VirtualNetwork** services on an EVPN leaf fabric, using the **microse
 |-----|---------|
 | **[docs/EDA-Microsegmentation.md](docs/EDA-Microsegmentation.md)** | EDA microsegmentation intro, **§2 per-variant guide (A–G)**, CR reference, deploy |
 | **[docs/EDA-Microsegmentation-Test-Report.md](docs/EDA-Microsegmentation-Test-Report.md)** | Ping matrices, sign-off (D/E GO Aug 2026) |
+| **[docs/DEMO-RUNBOOK.md](docs/DEMO-RUNBOOK.md)** | Step-by-step Talos #2 demo: GroupTag → association → policy, control plane, enforcement points, cross-DC |
 | **[docs/VARIANT-SCOPE-LOCK.md](docs/VARIANT-SCOPE-LOCK.md)** | Authoritative leaf/client scope (max 3 leaves) |
+| **[docs/FIREWALL-RULES-TO-EDA-GBP.md](docs/FIREWALL-RULES-TO-EDA-GBP.md)** | How Palo Alto rules map to GroupTags and GBP, what the firewall app translates, and the per-IP gap |
 | **[variants/README.md](variants/README.md)** | YAML catalog and apply files |
 
 ## Prerequisites

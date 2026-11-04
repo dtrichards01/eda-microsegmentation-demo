@@ -33,7 +33,8 @@ A 8/8, B 8/8, C 8/8, D 8/8, E 10/10, F 8/8, G 6/6, H 10/10.
 | `scripts/ms-tests.sh` | `setup` / `test` for A–H on k0r4; exit code = failed checks |
 | `scripts/regression-other-projects.sh` | Read-only DCI, firewall and tenancy checks |
 | `scripts/txn-diff.sh` | Summarise a dry-run transaction and flag lines touching other projects |
-| `scripts/gbp-trace.sh` | Read-only: which network-instance's GBP ACL drops red→green, per test (counter deltas) |
+| `scripts/gbp-trace.sh` | Read-only: which network-instance's GBP ACL drops red→green, per test (counter deltas); `gbp-trace.sh [A..H]` |
+| `scripts/order-tests.sh` | Dry-run only: creation-order rules for GroupTags and policies; `order-tests.sh [1..4]` |
 | `scripts/leaf-reboot.sh` | Reboot one containerlab leaf and repair what the reboot breaks (below) |
 | `scripts/dci-clients-to-vlan.sh` | Gate 1 client move (DCI clients to `eth1.<vlan>`) |
 

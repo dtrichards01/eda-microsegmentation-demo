@@ -1,0 +1,166 @@
+################ ord-1-control
+create   MicroSegmentationPolicy clab-srl-leaf-spine-dcgw ms-order-test
+transaction 137206 dryRun
+{
+ "id": 137206,
+ "description": "dry-run order test ord-1-control",
+ "lastChangeTimestamp": "2026-11-04T16:31:16Z",
+ "username": "admin",
+ "success": true,
+ "state": "complete",
+ "detailLevel": "detailed",
+ "details": "normal",
+ "commitHash": "",
+ "dryRun": true
+}
+== errors
+detailLevelAvailable: DETAILED
+inputResources:
+  namespace: clab-srl-leaf-spine-dcgw, microsegmentation.eda.nokia.com/v1alpha1, kind=MicroSegmentationPolicy, name: ms-order-test, action: CreateUpdate
+intentsRun:
+  microsegmentation.eda.nokia.com/v1alpha1, kind=MicroSegmentationPolicy, count: 1, execution-time-ms: 0
+outputResources:
+  core.eda.nokia.com/v1, kind=NodeConfig, count: 1
+  microsegmentation.eda.nokia.com/v1alpha1, kind=MicroSegmentationPolicyState, count: 1
+targetsAffected:
+  srl-leaf-5
+dryRun: true
+commitHash: 
+lastChangeTimestamp: 2026-11-04 16:31:16 +0000 UTC [2026-11-04T16:31:16Z] - 2s ago
+executionSummary: intents-run: 1, nodes-changed: 1, engine-time=4.749102ms, push-to-node=60.470593ms
+result: OK
+== nodes touched
+ srl-leaf-5 
+== changed lines in other projects' objects (want none)
+-- leaf-5 GBP lines in diff
++            tag-value 6
++        acl {
++            entry 5 {
++                description "order test"
++            entry 10 {
++                description "order test (reversed entry 5)"
+################ ord-2-missing
+create   MicroSegmentationPolicy clab-srl-leaf-spine-dcgw ms-order-test
+transaction 137207 dryRun
+{
+ "id": 137207,
+ "description": "dry-run order test ord-2-missing",
+ "lastChangeTimestamp": "2026-11-04T16:31:21Z",
+ "username": "admin",
+ "success": false,
+ "state": "complete",
+ "detailLevel": "detailed",
+ "details": "normal",
+ "commitHash": "",
+ "dryRun": true
+}
+== errors
+detailLevelAvailable: DETAILED
+inputResources:
+  namespace: clab-srl-leaf-spine-dcgw, microsegmentation.eda.nokia.com/v1alpha1, kind=MicroSegmentationPolicy, name: ms-order-test, action: CreateUpdate
+intentsRun:
+  microsegmentation.eda.nokia.com/v1alpha1, kind=MicroSegmentationPolicy, count: 1, execution-time-ms: 0
+outputResources:
+targetsAffected:
+errors:
+  intentErrors:
+  - namespace: clab-srl-leaf-spine-dcgw, gvk: microsegmentation.eda.nokia.com/v1alpha1, kind=MicroSegmentationPolicy, name: ms-order-test
+ 	errors:
+    - missing dependency of type Group tag with name ms-order-missing
+dryRun: true
+commitHash: 
+lastChangeTimestamp: 2026-11-04 16:31:21 +0000 UTC [2026-11-04T16:31:21Z] - 2s ago
+executionSummary: intents-run: 1, nodes-changed: 0, engine-time=2.35546ms
+result: FAILED
+== nodes touched
+No node-change differences retained in namespace "clab-srl-leaf-spine-dcgw" 
+== changed lines in other projects' objects (want none)
+-- leaf-5 GBP lines in diff
+################ ord-3-together
+create   GroupTag clab-srl-leaf-spine-dcgw ms-order-missing
+create   MicroSegmentationPolicy clab-srl-leaf-spine-dcgw ms-order-test
+transaction 137208 dryRun
+{
+ "id": 137208,
+ "description": "dry-run order test ord-3-together",
+ "lastChangeTimestamp": "2026-11-04T16:31:26Z",
+ "username": "admin",
+ "success": true,
+ "state": "complete",
+ "detailLevel": "detailed",
+ "details": "normal",
+ "commitHash": "",
+ "dryRun": true
+}
+== errors
+detailLevelAvailable: DETAILED
+inputResources:
+  namespace: clab-srl-leaf-spine-dcgw, microsegmentation.eda.nokia.com/v1alpha1, kind=GroupTag, name: ms-order-missing, action: CreateUpdate
+  namespace: clab-srl-leaf-spine-dcgw, microsegmentation.eda.nokia.com/v1alpha1, kind=MicroSegmentationPolicy, name: ms-order-test, action: CreateUpdate
+intentsRun:
+  microsegmentation.eda.nokia.com/v1alpha1, kind=GroupTag, count: 1, execution-time-ms: 0
+  microsegmentation.eda.nokia.com/v1alpha1, kind=MicroSegmentationPolicy, count: 1, execution-time-ms: 0
+outputResources:
+  core.eda.nokia.com/v1, kind=NodeConfig, count: 1
+  microsegmentation.eda.nokia.com/v1alpha1, kind=GroupTagState, count: 1
+  microsegmentation.eda.nokia.com/v1alpha1, kind=MicroSegmentationPolicyState, count: 1
+targetsAffected:
+  srl-leaf-5
+dryRun: true
+commitHash: 
+lastChangeTimestamp: 2026-11-04 16:31:26 +0000 UTC [2026-11-04T16:31:26Z] - 2s ago
+executionSummary: intents-run: 2, nodes-changed: 1, engine-time=6.350228ms, push-to-node=55.845728ms
+result: OK
+== nodes touched
+ srl-leaf-5 
+== changed lines in other projects' objects (want none)
+-- leaf-5 GBP lines in diff
++        group ms-order-missing {
++            tag-value 8
++        acl {
++            entry 5 {
++                description "order test"
++                        ms-order-missing
++            entry 10 {
++                description "order test (reversed entry 5)"
++                        ms-order-missing
+################ ord-4-delete-used
+delete  GroupTag clab-srl-leaf-spine-dcgw ms-green
+transaction 137209 dryRun
+{
+ "id": 137209,
+ "description": "dry-run order test ord-4-delete-used",
+ "lastChangeTimestamp": "2026-11-04T16:31:31Z",
+ "username": "admin",
+ "success": false,
+ "state": "complete",
+ "detailLevel": "detailed",
+ "details": "normal",
+ "commitHash": "",
+ "dryRun": true
+}
+== errors
+detailLevelAvailable: DETAILED
+inputResources:
+  namespace: clab-srl-leaf-spine-dcgw, microsegmentation.eda.nokia.com/v1alpha1, kind=GroupTag, name: ms-green, action: Delete
+intentsRun:
+  microsegmentation.eda.nokia.com/v1alpha1, kind=AssociationPolicy, count: 8, execution-time-ms: 2
+  microsegmentation.eda.nokia.com/v1alpha1, kind=GroupTag, count: 1, execution-time-ms: 0
+  microsegmentation.eda.nokia.com/v1alpha1, kind=MicroSegmentationPolicy, count: 8, execution-time-ms: 4
+outputResources:
+targetsAffected:
+errors:
+  intentErrors:
+  - namespace: clab-srl-leaf-spine-dcgw, gvk: microsegmentation.eda.nokia.com/v1alpha1, kind=AssociationPolicy, name: ms-assoc-bridge
+ 	errors:
+    - missing dependency of type Group tag with name ms-green
+  - namespace: clab-srl-leaf-spine-dcgw, gvk: microsegmentation.eda.nokia.com/v1alpha1, kind=AssociationPolicy, name: ms-assoc-dci
+ 	errors:
+    - missing dependency of type Group tag with name ms-green
+  - namespace: clab-srl-leaf-spine-dcgw, gvk: microsegmentation.eda.nokia.com/v1alpha1, kind=AssociationPolicy, name: ms-assoc-enf-bd
+ 	errors:
+    - missing dependency of type Group tag with name ms-green
+== nodes touched
+No node-change differences retained in namespace "clab-srl-leaf-spine-dcgw" 
+== changed lines in other projects' objects (want none)
+-- leaf-5 GBP lines in diff

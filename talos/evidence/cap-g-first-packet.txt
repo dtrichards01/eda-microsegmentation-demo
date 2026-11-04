@@ -1,0 +1,28 @@
+client-5 MAC AA:C1:AB:C4:38:9F   client-8 MAC AA:C1:AB:C1:E0:65
+client-5 ARP for 172.16.110.8: 
+client-8 ARP for 172.16.110.5: 
+aging:     age-time 300
+== BEFORE ==
+  leaf-5 bd-ms-enf-bd MAC table:
+    entries for the two clients: 0
+  leaf-8 bd-ms-enf-bd MAC table:
+    entries for the two clients: 0
+leaf-5#55 46
+leaf-5#65 3
+leaf-8#55 0
+leaf-8#65 3
+== MAC tables right after the first ping ==
+  leaf-5 bd-ms-enf-bd MAC table:
+    entries for the two clients: 0
+  leaf-8 bd-ms-enf-bd MAC table:
+    entries for the two clients: 0
+== counter deltas after 1 ping (entry 55 = block red/green, 65 = default deny) ==
+  leaf-5#55 0
+  leaf-5#65 0
+  leaf-8#55 0
+  leaf-8#65 1
+== second run (MACs now learned): 5 more pings ==
+  leaf-5#55 5
+  leaf-5#65 0
+  leaf-8#55 0
+  leaf-8#65 0

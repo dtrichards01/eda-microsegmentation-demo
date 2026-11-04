@@ -23,13 +23,19 @@ trace() {  # trace <test> <src> <vlan> <dst> <src-leaf> <dst-leaf>
     done
   done
 }
-trace A        client-1 75  172.16.75.3   1 3
-trace B        client-5 76  172.16.76.7   5 7
-trace C        client-1 80  172.16.82.10  1 4
-trace D        client-4 85  172.16.85.3   4 3
-trace E        client-8 90  172.16.90.7   8 7
-trace E-static client-8 90  172.16.91.1   8 7
-trace F        client-5 100 172.16.142.8  5 8
-trace G        client-5 110 172.16.110.8  5 8
-trace H        client-1 120 172.16.121.7  1 7
+want() { local t; for t in "${SEL[@]}"; do [ "$t" = "${1%%-*}" ] && return 0; done; return 1; }
+SEL=("$@")  # gbp-trace.sh [A B ... H]; no arguments = all
+while read -r t c v d s r; do
+  if [ ${#SEL[@]} -eq 0 ] || want "$t"; then trace "$t" "$c" "$v" "$d" "$s" "$r"; fi
+done <<'EOF'
+A        client-1 75  172.16.75.3   1 3
+B        client-5 76  172.16.76.7   5 7
+C        client-1 80  172.16.82.10  1 4
+D        client-4 85  172.16.85.3   4 3
+E        client-8 90  172.16.90.7   8 7
+E-static client-8 90  172.16.91.1   8 7
+F        client-5 100 172.16.142.8  5 8
+G        client-5 110 172.16.110.8  5 8
+H        client-1 120 172.16.121.7  1 7
+EOF
 
