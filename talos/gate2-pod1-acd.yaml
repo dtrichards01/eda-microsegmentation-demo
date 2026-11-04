@@ -53,19 +53,6 @@
 }
 ---
 {
-  "apiVersion": "microsegmentation.eda.nokia.com/v1alpha1",
-  "kind": "GroupTag",
-  "metadata": {
-    "name": "ms-remote",
-    "namespace": "clab-srl-leaf-spine-dcgw"
-  },
-  "spec": {
-    "description": "Microsegmentation demo remote prefix",
-    "scope": "Global"
-  }
-}
----
-{
   "apiVersion": "interfaces.eda.nokia.com/v1",
   "kind": "Interface",
   "metadata": {

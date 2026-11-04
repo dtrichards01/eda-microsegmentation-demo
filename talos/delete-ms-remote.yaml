@@ -1,0 +1,7 @@
+# Remove the unused ms-remote GroupTag (planned for an early test H design, never referenced).
+apiVersion: microsegmentation.eda.nokia.com/v1alpha1
+kind: GroupTag
+metadata:
+  name: ms-remote
+  namespace: clab-srl-leaf-spine-dcgw
+x-op: delete

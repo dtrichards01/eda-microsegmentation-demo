@@ -19,7 +19,6 @@ TAGS = {
     "ms-blue": "Microsegmentation demo blue group",
     "ms-green": "Microsegmentation demo green group",
     "ms-gateway": "Microsegmentation demo gateway IRB",
-    "ms-remote": "Microsegmentation demo remote prefix",
 }
 
 docs = []

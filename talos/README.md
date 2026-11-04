@@ -51,6 +51,7 @@ review: `python3 eda-txn.py <file> [--commit] --desc '...'`.
 | 136806 | Default deny back on C, E, F (after all leaves rebooted) |
 | 136818 | E back to no default deny (see the test report for why) |
 | 136821 | Gate 4: test H |
+| 136865 | Delete unused GroupTag `ms-remote` (`delete-ms-remote.yaml`) |
 
 ## Leaf reboot (`lpm-source-lookup`)
 
