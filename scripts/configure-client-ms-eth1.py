@@ -5,6 +5,10 @@ Configure clab client eth1 for EDA microsegmentation variant demos (Dot1q VLANs)
 Each variant uses a dedicated VLAN on eth1 so multiple services can coexist on the
 same leaf edge port; switch tests with --variant A|B|C|D|E|F|G.
 
+Changes are additive only (docs/VARIANT-SCOPE-LOCK.md rule 3): the VLAN subif and
+IP are created if missing, other subifs and the default route are left alone, and
+off-subnet test prefixes get a specific route via the variant gateway.
+
 Examples:
   python3 configure-client-ms-eth1.py --list
   python3 configure-client-ms-eth1.py --variant A --apply
@@ -15,6 +19,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import os
 import subprocess
 import sys
@@ -63,8 +68,16 @@ VARIANTS: dict[VariantId, Variant] = {
 @dataclass(frozen=True)
 class ClientProfile:
     client: str
-    # (ip, gateway) per variant — empty gateway = no default route (L2-only G)
+    # (ip, gateway) per variant — empty gateway = L2 only (G), no routes added
     addresses: dict[VariantId, tuple[str, str]]
+
+
+# Off-subnet prefixes each variant's tests reach via the variant gateway.
+# The client's own connected subnet is skipped automatically.
+VARIANT_ROUTES: dict[VariantId, list[str]] = {
+    "C": ["172.16.80.0/24", "172.16.81.0/24", "172.16.82.0/24"],
+    "E": ["172.16.91.0/24"],
+}
 
 
 CLIENTS: list[ClientProfile] = [
@@ -154,17 +167,23 @@ def clients_for_variant(variant: VariantId) -> list[ClientProfile]:
     return [c for c in CLIENTS if variant in c.addresses]
 
 
+def subnet_of(ip_cidr: str) -> str:
+    return str(ipaddress.ip_interface(ip_cidr).network)
+
+
 def apply_client(
     client: str,
     vlan: int,
     ip_cidr: str,
     gateway: str,
+    routes: list[str],
     ssh_host: str | None,
     clab_name: str,
 ) -> str:
     parent = "eth1"
     vlan_if = f"{parent}.{vlan}"
-    ip_addr = ip_cidr.split("/")[0]
+    own = subnet_of(ip_cidr)
+    extra = " ".join(r for r in routes if r != own) if gateway else ""
     script = f"""
 set -e
 PARENT={parent}
@@ -173,26 +192,18 @@ VID={vlan}
 IP={ip_cidr}
 GW={gateway}
 
-ip link set "$PARENT" up 2>/dev/null || true
-ip addr flush dev "$PARENT" 2>/dev/null || true
-# Remove other MS demo VLAN subifs on eth1 (101-108)
-for v in 75 80 81 82 85 90 100 110; do
-  ip link del "${{PARENT}}.${{v}}" 2>/dev/null || true
-done
-ip link add link "$PARENT" name "$VIF" type vlan id "$VID" 2>/dev/null || true
+ip link set "$PARENT" up
+ip link show "$VIF" >/dev/null 2>&1 || ip link add link "$PARENT" name "$VIF" type vlan id "$VID"
 ip link set "$VIF" up
-ip addr flush dev "$VIF" 2>/dev/null || true
-ip addr add "$IP" dev "$VIF"
-while ip route show default 2>/dev/null | grep -q '^default'; do
-  ip route del default 2>/dev/null || break
+ip -o -4 addr show dev "$VIF" | grep -q " $IP " || ip addr add "$IP" dev "$VIF"
+for P in {extra}; do
+  ip route show "$P" | grep -q . || ip route add "$P" via "$GW" dev "$VIF"
 done
-if [ -n "$GW" ]; then
-  ip route add default via "$GW" dev "$VIF"
-fi
 echo "vlan: $VID"
 echo "iface: $VIF"
-echo "addr: $(ip -o addr show dev "$VIF" | awk '{{print $4}}')"
-echo "default: $(ip route show default | head -1)"
+echo "addr: $(ip -o -4 addr show dev "$VIF" | awk '{{print $4}}' | tr '\\n' ' ')"
+echo "routes: $(ip route show dev "$VIF" | grep via | tr '\\n' ';')"
+echo "default (unchanged): $(ip route show default | head -1)"
 """
     container = docker_name(client, clab_name)
     proc = run_cmd(["docker", "exec", container, "bash", "-c", script], ssh_host)
@@ -270,7 +281,13 @@ def main() -> int:
             container = docker_name(p.client, args.clab_name)
             try:
                 out = apply_client(
-                    p.client, variant.vlan, ip_cidr, gw, args.ssh_host, args.clab_name
+                    p.client,
+                    variant.vlan,
+                    ip_cidr,
+                    gw,
+                    VARIANT_ROUTES.get(variant.id, []),
+                    args.ssh_host,
+                    args.clab_name,
                 )
                 for line in out.splitlines():
                     print(f"  {line}")

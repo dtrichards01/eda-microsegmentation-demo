@@ -2,6 +2,7 @@
 """Run MS variant connectivity tests; capture EDA state + full ping matrix."""
 from __future__ import annotations
 
+import ipaddress
 import json
 import subprocess
 import time
@@ -120,6 +121,12 @@ CLIENT_CFG = {
     },
 }
 
+# Off-subnet test prefixes reached via the variant gateway (own subnet skipped).
+VARIANT_ROUTES = {
+    "C": ["172.16.80.0/24", "172.16.81.0/24", "172.16.82.0/24"],
+    "E": ["172.16.91.0/24"],
+}
+
 GROUP = {
     "client1": "red",
     "client2": "blue",
@@ -177,19 +184,20 @@ def cr_exists(kind_path: str, name: str) -> bool:
     return r.returncode == 0
 
 
-def configure_client(client: str, vlan: int, ip: str, gw: str) -> str:
+def configure_client(client: str, vlan: int, ip: str, gw: str, routes: list[str]) -> str:
+    """Additive only (VARIANT-SCOPE-LOCK rule 3): never flush, delete subifs, or touch the default route."""
+    own = str(ipaddress.ip_interface(ip).network)
+    extra = " ".join(r for r in routes if r != own) if gw else ""
     script = f"""
 set -e
 P=eth1; V=$P.{vlan}; IP={ip}; GW={gw}
-ip link set $P up 2>/dev/null || true
-ip addr flush dev $P 2>/dev/null || true
-for v in 75 80 81 82 85 90 100 110; do ip link del $P.$v 2>/dev/null || true; done
-ip link add link $P name $V type vlan id {vlan} 2>/dev/null || true
+ip link set $P up
+ip link show $V >/dev/null 2>&1 || ip link add link $P name $V type vlan id {vlan}
 ip link set $V up
-ip addr flush dev $V 2>/dev/null || true
-ip addr add $IP dev $V
-while ip route show default 2>/dev/null | grep -q '^default'; do ip route del default 2>/dev/null || break; done
-if [ -n "$GW" ]; then ip route add default via $GW dev $V; fi
+ip -o -4 addr show dev $V | grep -q " $IP " || ip addr add $IP dev $V
+for R in {extra}; do
+  ip route show $R | grep -q . || ip route add $R via $GW dev $V
+done
 """
     for prefix in ("", "clab-3-tier-leaf-spine-dcgw-"):
         name = f"{prefix}{client}"
@@ -284,7 +292,9 @@ def run_variant(variant: str) -> dict:
     }
     for c in clients:
         ip, gw = CLIENT_CFG[variant][c]
-        out["client_configure"][c] = configure_client(c, vlan, ip, gw)
+        out["client_configure"][c] = configure_client(
+            c, vlan, ip, gw, VARIANT_ROUTES.get(variant, [])
+        )
     time.sleep(4)
     for src, dst, label, exp in build_cases(variant, clients):
         ok, summary = ping(src, dst, vlan)

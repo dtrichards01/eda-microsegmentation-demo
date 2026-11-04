@@ -1,4 +1,4 @@
-﻿# VARIANT-D — IRB association demo labels (scoped leaf-2/3/4)
+# VARIANT-D — IRB association demo labels (scoped leaf-2/3/4)
 # leaf-2=blue (client2), leaf-3=green (client3), leaf-4=red (client4)
 ---
 apiVersion: interfaces.eda.nokia.com/v1

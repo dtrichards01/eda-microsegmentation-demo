@@ -1,4 +1,4 @@
-﻿apiVersion: services.eda.nokia.com/v2
+apiVersion: services.eda.nokia.com/v2
 kind: VirtualNetwork
 metadata:
   name: vnet-ms-vlan

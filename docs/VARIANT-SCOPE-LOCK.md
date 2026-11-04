@@ -1,4 +1,4 @@
-﻿# Variant scope lock (authoritative)
+# Variant scope lock (authoritative)
 
 This document overrides older tables in `docs/CLAB-3-TIER-TOPOLOGY.md` and any agent notes that used leaf-1/2/3 or client1/2/3 for the current MS test.
 
