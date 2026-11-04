@@ -94,13 +94,58 @@ What this means for policy:
 | StaticRoute `/32` for one host | Destination tag for that one IP, routed traffic only | **No** | Not tested. It would override the host's EVPN `/32`, and it does nothing for bridged traffic in the same subnet or for the host as a source on its own leaf (source tags there come from the MAC table) |
 | Learned host routes with the `gbp-tag` community (`hostRoutePopulate.dynamic`, ARP/ND) | One `/32` per host, carried between leaves and across the DCI | Yes (variant H) | The tag is copied from the host's attachment. It is distribution, not classification |
 
-## 5. Gaps to close, and who owns them
+## 5. Authoring guidance for rules exported to EDA
+
+A rule tagged `eda-export-to-gbp` is a contract. It should only use what the fabric can enforce exactly. Rules that break the contract are not refused on the firewall: they keep working there, and the FirewallPolicyReport shows them untranslated with the reason. The report is the check that the guidance was followed.
+
+### 5.1 Identity: a group is one subnet, and the subnet is one tag
+
+| Do | Why |
+|----|-----|
+| Make each group (for example `EDA-RED`) hold **one address object per subnet**, and set that object to **the IRB subnet** of a bridge domain (`10.31.1.0/24` for `fw-pan-inside`), or to the subnet of a routed interface | Every host in the subnet is behind that bridge domain's attachments, so "the subnet" and "the hosts the fabric tags" are the same set |
+| Associate the GroupTag with **every** attachment (VLAN, bridge interface) of that bridge domain | If one VLAN in the bridge domain carries another tag, or none, the subnet is split and no single tag equals it |
+| Use one bridge domain or routed subnet per security group | The variant A design (one shared subnet, three VLANs in three colours) cannot be written as a subnet rule. Each colour there is a set of VLANs, not a prefix |
+| Several subnets in one group are fine, if each one follows the rows above | The GroupTag is associated with the attachments of every subnet |
+| Avoid `/32` host objects. Use them only where the host has an attachment to itself | A `/32` tags the whole attachment (section 3) |
+| Avoid dynamic address groups for exported rules | Runtime membership cannot follow into EDA |
+| Use IPv4 `ip-netmask` objects only | Ranges, wildcards, FQDNs and IPv6 are not translated in v1 |
+
+The IRB gateway address lies inside the subnet, but it does not need to match. Traffic to the gateway is extracted to the CPU and is not filtered by group-based policy.
+
+### 5.2 Rule shape
+
+| Field | Use | Not translated if |
+|-------|-----|-------------------|
+| Source, destination | Exactly one address group each | `any`, several objects, an address object instead of a group, negation |
+| Application | `any` | Any App-ID (stays NGFW_REQUIRED) |
+| Service | `any`, or TCP/UDP services and service groups with ports or ranges | `application-default`, other protocols (v1) |
+| User, URL category, HIP, profiles | none | any set (NGFW_REQUIRED) |
+| Action | `allow`, `deny`, `drop` | `reset-*` |
+| Rule type | `universal` | `intrazone`, `interzone` |
+| Schedule | none | any schedule |
+| Zones | Free. Not translated. The policy applies where the GroupTags are associated | — |
+| Order | Exported rules above the rules that are not exported, with no non-exported rule in between that overlaps them | An earlier, overlapping rule of the other action class (PRECEDENCE_AMBIGUOUS) |
+| Final deny | Do not rely on it in the fabric | It is never exported. Add a `match: {}` Drop to the policy on the EDA side if the fabric must default-deny |
+
+### 5.3 What the app needs for subnet members (next release)
+
+v1.8.2 refuses prefix members (PREFIX_MEMBER_NOT_IN_V1) and checks only that a `/32` lies inside a tagged subnet. To follow 5.1 it would:
+
+| Member | Accept when | Otherwise |
+|--------|-------------|-----------|
+| Prefix shorter than `/32` | It **equals** the IRB subnet of a bridge domain, or the subnet of a routed interface, and every attachment of that bridge domain carries this group's GroupTag and no other discovered GroupTag | SUBNET_NOT_ATTACHMENT (not an IRB or routed subnet), SUBNET_SPLIT_ACROSS_TAGS (an attachment carries no tag or another tag) |
+| `/32` | It lies inside a tagged subnet (as today), and the attachment has no learned host outside the group | ATTACHMENT_WIDER_THAN_GROUP (needs the learned-host read, section 6) |
+
+With that change, the lab's `EDA-SECURE` (a `/24`) would translate once its subnet's attachments are associated with `eda-secure`. `EDA-RED`, `EDA-BLUE` and `EDA-GREEN` could move from `/32` clients to their zone subnets `10.31.1.0/24`, `10.31.2.0/24` and `10.21.1.0/24`.
+
+## 6. Gaps to close, and who owns them
 
 | Gap | Owner | Proposal |
 |---|---|---|
 | No per-IP or per-MAC classification (an endpoint or prefix to GroupTag) | Nokia (EDA Microsegmentation app, SR Linux GBP) | Feature request: an AssociationPolicy target for host IPs or prefixes and MACs, programmed as SR Linux static group assignments |
 | Attachment wider than the firewall group (section 3) | Firewall app | New check: read the learned hosts on each tagged attachment (ARP/ND and MAC table through EQL). Flag ATTACHMENT_WIDER_THAN_GROUP and do not translate while a host behind it is not a firewall member |
 | Dynamic address group membership changes | Firewall app, then the Nokia feature above | Report the drift today. Only per-IP classification can follow it |
-| Subnet members, IPv6, more protocols, several groups per side, `log-end` | Firewall app | Profile extensions (`microseg-1to1` v2). The EDA model already has the fields |
+| Subnet members equal to an IRB or routed subnet (section 5.3) | Firewall app | Next release. Makes the guidance in section 5 translatable |
+| IPv6, more protocols, several groups per side, `log-end` | Firewall app | Profile extensions (`microseg-1to1` v2). The EDA model already has the fields |
 | Zero-trust tail (the firewall's final deny) | Microsegmentation app operator (gate F) | Add an explicit `match: {}` Drop as the last entry. Note variant E's caveat |
 | App-ID, User-ID, URL, HIP, profiles, reset actions, schedules | Stays on the firewall | Traffic that needs them must keep crossing the firewall (NGFW_REQUIRED) |
