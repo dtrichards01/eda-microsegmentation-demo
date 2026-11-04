@@ -1,0 +1,110 @@
+# G probe: no blue<->green rule, no default deny
+---
+{
+  "apiVersion": "microsegmentation.eda.nokia.com/v1alpha1",
+  "kind": "MicroSegmentationPolicy",
+  "metadata": {
+    "name": "ms-policy-enf-bd",
+    "namespace": "clab-srl-leaf-spine-dcgw",
+    "labels": {
+      "eda.nokia.com/ms-variant": "enforcement-bridge-domain-target"
+    },
+    "annotations": {
+      "eda.nokia.com/ms-demo-description": "Test G policy, serviceTargets.bridgeDomains only (L2)"
+    }
+  },
+  "spec": {
+    "serviceTargets": {
+      "bridgeDomains": [
+        "bd-ms-enf-bd"
+      ]
+    },
+    "entries": [
+      {
+        "description": "allow red-red",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-red"
+          ],
+          "destinationGroupTag": [
+            "ms-red"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "allow blue-blue",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-blue"
+          ],
+          "destinationGroupTag": [
+            "ms-blue"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "allow green-green",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-green"
+          ],
+          "destinationGroupTag": [
+            "ms-green"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "allow red to/from blue",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-red"
+          ],
+          "destinationGroupTag": [
+            "ms-blue"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "block red to/from green",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-red"
+          ],
+          "destinationGroupTag": [
+            "ms-green"
+          ]
+        },
+        "action": {
+          "forward": "Drop",
+          "collectStats": true,
+          "log": true
+        }
+      }
+    ]
+  }
+}

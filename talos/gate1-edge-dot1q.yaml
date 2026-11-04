@@ -1,0 +1,655 @@
+# Gate 1: client edge ports Null -> Dot1q, DCI VLANs null -> tagged (one EDA transaction).
+# Rollback: talos/snapshot-2026-11-03/ (interfaces-client-ports.yaml, dci-vnets.yaml).
+# DCI client moves: talos/scripts/dci-clients-to-vlan.sh
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: srl-leaf-1-ethernet-1-5
+  namespace: clab-srl-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/vnet-1: vlan-bd-1
+spec:
+  description: edge link to client-1
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+  - enabled: true
+    interface: ethernet-1-5
+    lacpPortPriority: 32768
+    node: srl-leaf-1
+  type: Interface
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: srl-leaf-2-ethernet-1-6
+  namespace: clab-srl-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/vnet-1: vlan-bd-1
+spec:
+  description: edge link to client-2
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+  - enabled: true
+    interface: ethernet-1-6
+    lacpPortPriority: 32768
+    node: srl-leaf-2
+  type: Interface
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: srl-leaf-3-ethernet-1-5
+  namespace: clab-srl-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/vnet-3: vlan-bd-3
+spec:
+  description: edge link to client-3
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+  - enabled: true
+    interface: ethernet-1-5
+    lacpPortPriority: 32768
+    node: srl-leaf-3
+  type: Interface
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: srl-leaf-4-ethernet-1-5
+  namespace: clab-srl-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/vnet-5: vlan-bd-5
+spec:
+  description: edge link to client-4
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+  - enabled: true
+    interface: ethernet-1-5
+    lacpPortPriority: 32768
+    node: srl-leaf-4
+  type: Interface
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: srl-leaf-5-ethernet-1-5
+  namespace: clab-srl-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/vnet-2: vlan-bd-2
+spec:
+  description: edge link to client-5
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+  - enabled: true
+    interface: ethernet-1-5
+    lacpPortPriority: 32768
+    node: srl-leaf-5
+  type: Interface
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: srl-leaf-6-ethernet-1-6
+  namespace: clab-srl-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/vnet-2: vlan-bd-2
+spec:
+  description: edge link to client-6
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+  - enabled: true
+    interface: ethernet-1-6
+    lacpPortPriority: 32768
+    node: srl-leaf-6
+  type: Interface
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: srl-leaf-7-ethernet-1-5
+  namespace: clab-srl-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/vnet-4: vlan-bd-4
+spec:
+  description: edge link to client-7
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+  - enabled: true
+    interface: ethernet-1-5
+    lacpPortPriority: 32768
+    node: srl-leaf-7
+  type: Interface
+---
+apiVersion: interfaces.eda.nokia.com/v1
+kind: Interface
+metadata:
+  name: srl-leaf-8-ethernet-1-5
+  namespace: clab-srl-leaf-spine-dcgw
+  labels:
+    eda.nokia.com/role: edge
+    eda.nokia.com/vnet-4: vlan-bd-4
+spec:
+  description: edge link to client-8
+  enabled: true
+  encapType: Dot1q
+  ethernet:
+    stormControl:
+      enabled: false
+  lldp: true
+  members:
+  - enabled: true
+    interface: ethernet-1-5
+    lacpPortPriority: 32768
+    node: srl-leaf-8
+  type: Interface
+---
+{
+  "apiVersion": "services.eda.nokia.com/v2",
+  "kind": "VirtualNetwork",
+  "metadata": {
+    "name": "vnet-1",
+    "namespace": "clab-srl-leaf-spine-dcgw"
+  },
+  "spec": {
+    "bridgeDomains": [
+      {
+        "name": "bd-1",
+        "spec": {
+          "encapOptions": {
+            "vxlan": {
+              "tunnelIndexPool": "tunnel-index-pool",
+              "vni": 201,
+              "vniPool": "vni-pool"
+            }
+          },
+          "evi": 101,
+          "eviPool": "evi-pool",
+          "exportTarget": "target:1:101",
+          "importTarget": "target:1:101",
+          "macLearning": {
+            "agingTimeSeconds": 300,
+            "enabled": true
+          },
+          "macLimit": 2000,
+          "type": "EVPNVXLAN"
+        }
+      }
+    ],
+    "irbInterfaces": [
+      {
+        "name": "irb-1",
+        "spec": {
+          "bridgeDomain": "bd-1",
+          "evpnRouteAdvertisementType": {
+            "arpDynamic": true,
+            "arpStatic": true,
+            "ndDynamic": true,
+            "ndStatic": true,
+            "rfc9135SymmetricMode": true
+          },
+          "hostRoutePopulate": {
+            "evpn": {
+              "datapathProgramming": true,
+              "populate": true
+            }
+          },
+          "indexAllocation": {
+            "indexPool": "irb-subif-pool",
+            "mode": "GlobalPool"
+          },
+          "ipAddresses": [
+            {
+              "ipv4Address": {
+                "anycast": true,
+                "ipPrefix": "172.16.101.254/24",
+                "primary": true
+              }
+            },
+            {
+              "ipv6Address": {
+                "ipPrefix": "fc00:11::1/120",
+                "primary": true
+              }
+            }
+          ],
+          "ipMTU": 1500,
+          "ipv4": {
+            "arpTimeoutSeconds": 14400,
+            "learnUnsolicitedARP": "Disabled"
+          },
+          "ipv6": {
+            "learnUnsolicitedNA": "Disabled"
+          },
+          "router": "router-1"
+        }
+      }
+    ],
+    "protocols": {},
+    "routers": [
+      {
+        "name": "router-1",
+        "spec": {
+          "bgp": {
+            "autonomousSystem": 65401,
+            "ebgpPreference": 170,
+            "enabled": true,
+            "ibgpPreference": 170,
+            "ipv4Unicast": {
+              "enabled": true
+            },
+            "minWaitToAdvertiseSeconds": 0,
+            "rapidWithdrawl": true,
+            "waitForFIBInstall": false
+          },
+          "encapOptions": {
+            "vxlan": {
+              "tunnelIndexPool": "tunnel-index-pool",
+              "vni": 200,
+              "vniPool": "vni-pool"
+            }
+          },
+          "evi": 100,
+          "eviPool": "evi-pool",
+          "exportTarget": "target:1:100",
+          "importTarget": "target:1:100",
+          "routerID": "1.2.3.4",
+          "type": "EVPNVXLAN"
+        }
+      }
+    ],
+    "vlans": [
+      {
+        "name": "vlan-null-vnet-1",
+        "spec": {
+          "bridgeDomain": "bd-1",
+          "interfaceSelectors": [
+            "eda.nokia.com/vnet-1=vlan-bd-1"
+          ],
+          "vlanID": "101"
+        }
+      }
+    ]
+  }
+}
+---
+{
+  "apiVersion": "services.eda.nokia.com/v2",
+  "kind": "VirtualNetwork",
+  "metadata": {
+    "name": "vnet-2",
+    "namespace": "clab-srl-leaf-spine-dcgw"
+  },
+  "spec": {
+    "bridgeDomains": [
+      {
+        "name": "bd-2",
+        "spec": {
+          "encapOptions": {
+            "vxlan": {
+              "tunnelIndexPool": "tunnel-index-pool",
+              "vni": 202,
+              "vniPool": "vni-pool"
+            }
+          },
+          "evi": 102,
+          "eviPool": "evi-pool",
+          "exportTarget": "target:1:102",
+          "importTarget": "target:1:102",
+          "macLearning": {
+            "agingTimeSeconds": 300,
+            "enabled": true
+          },
+          "type": "EVPNVXLAN"
+        }
+      }
+    ],
+    "irbInterfaces": [
+      {
+        "name": "irb-2",
+        "spec": {
+          "bridgeDomain": "bd-2",
+          "evpnRouteAdvertisementType": {
+            "arpDynamic": true,
+            "arpStatic": true,
+            "ndDynamic": true,
+            "ndStatic": true,
+            "rfc9135SymmetricMode": true
+          },
+          "hostRoutePopulate": {
+            "evpn": {
+              "datapathProgramming": true,
+              "populate": true
+            }
+          },
+          "indexAllocation": {
+            "indexPool": "irb-subif-pool",
+            "mode": "GlobalPool"
+          },
+          "ipAddresses": [
+            {
+              "ipv4Address": {
+                "anycast": true,
+                "ipPrefix": "172.16.201.254/24",
+                "primary": true
+              },
+              "ipv6Address": {
+                "anycast": true,
+                "ipPrefix": "fc00:21::1/120",
+                "primary": true
+              }
+            }
+          ],
+          "ipMTU": 1500,
+          "ipv4": {
+            "arpTimeoutSeconds": 14400,
+            "learnUnsolicitedARP": "Disabled"
+          },
+          "ipv6": {
+            "learnUnsolicitedNA": "Disabled"
+          },
+          "router": "router-2"
+        }
+      }
+    ],
+    "routers": [
+      {
+        "name": "router-2",
+        "spec": {
+          "bgp": {
+            "autonomousSystem": 65402,
+            "ebgpPreference": 170,
+            "enabled": true,
+            "ibgpPreference": 170,
+            "ipv4Unicast": {
+              "enabled": true
+            },
+            "minWaitToAdvertiseSeconds": 0,
+            "rapidWithdrawl": true,
+            "waitForFIBInstall": false
+          },
+          "encapOptions": {
+            "vxlan": {
+              "tunnelIndexPool": "tunnel-index-pool",
+              "vni": 203,
+              "vniPool": "vni-pool"
+            }
+          },
+          "evi": 103,
+          "eviPool": "evi-pool",
+          "exportTarget": "target:1:103",
+          "importTarget": "target:1:103",
+          "routerID": "2.3.4.5",
+          "type": "EVPNVXLAN"
+        }
+      }
+    ],
+    "vlans": [
+      {
+        "name": "vlan-null-vnet-2",
+        "spec": {
+          "bridgeDomain": "bd-2",
+          "interfaceSelectors": [
+            "eda.nokia.com/vnet-2=vlan-bd-2"
+          ],
+          "vlanID": "102"
+        }
+      }
+    ]
+  }
+}
+---
+{
+  "apiVersion": "services.eda.nokia.com/v2",
+  "kind": "VirtualNetwork",
+  "metadata": {
+    "name": "vnet-3",
+    "namespace": "clab-srl-leaf-spine-dcgw"
+  },
+  "spec": {
+    "bridgeDomains": [
+      {
+        "name": "bd-3",
+        "spec": {
+          "encapOptions": {
+            "vxlan": {
+              "tunnelIndexPool": "tunnel-index-pool",
+              "vni": 204,
+              "vniPool": "vni-pool"
+            }
+          },
+          "evi": 104,
+          "eviPool": "evi-pool",
+          "exportTarget": "target:1:104",
+          "importTarget": "target:1:104",
+          "macLearning": {
+            "agingTimeSeconds": 300,
+            "enabled": true
+          },
+          "macLimit": 2000,
+          "type": "EVPNVXLAN"
+        }
+      }
+    ],
+    "vlans": [
+      {
+        "name": "vlan-null-vnet-3",
+        "spec": {
+          "bridgeDomain": "bd-3",
+          "interfaceSelectors": [
+            "eda.nokia.com/vnet-3=vlan-bd-3"
+          ],
+          "vlanID": "103"
+        }
+      }
+    ]
+  }
+}
+---
+{
+  "apiVersion": "services.eda.nokia.com/v2",
+  "kind": "VirtualNetwork",
+  "metadata": {
+    "name": "vnet-4",
+    "namespace": "clab-srl-leaf-spine-dcgw"
+  },
+  "spec": {
+    "bridgeDomains": [
+      {
+        "name": "bd-4",
+        "spec": {
+          "encapOptions": {
+            "vxlan": {
+              "tunnelIndexPool": "tunnel-index-pool",
+              "vni": 205,
+              "vniPool": "vni-pool"
+            }
+          },
+          "evi": 105,
+          "eviPool": "evi-pool",
+          "exportTarget": "target:1:105",
+          "importTarget": "target:1:105",
+          "macLearning": {
+            "agingTimeSeconds": 300,
+            "enabled": true
+          },
+          "type": "EVPNVXLAN"
+        }
+      }
+    ],
+    "vlans": [
+      {
+        "name": "vlan-null-vnet-4",
+        "spec": {
+          "bridgeDomain": "bd-4",
+          "interfaceSelectors": [
+            "eda.nokia.com/vnet-4=vlan-bd-4"
+          ],
+          "vlanID": "104"
+        }
+      }
+    ]
+  }
+}
+---
+{
+  "apiVersion": "services.eda.nokia.com/v2",
+  "kind": "VirtualNetwork",
+  "metadata": {
+    "name": "vnet-5",
+    "namespace": "clab-srl-leaf-spine-dcgw"
+  },
+  "spec": {
+    "bridgeDomains": [
+      {
+        "name": "bd-5",
+        "spec": {
+          "encapOptions": {
+            "vxlan": {
+              "tunnelIndexPool": "tunnel-index-pool",
+              "vni": 206,
+              "vniPool": "vni-pool"
+            }
+          },
+          "evi": 106,
+          "eviPool": "evi-pool",
+          "exportTarget": "target:1:106",
+          "importTarget": "target:1:106",
+          "macLearning": {
+            "agingTimeSeconds": 300,
+            "enabled": true
+          },
+          "macLimit": 2000,
+          "type": "EVPNVXLAN"
+        }
+      }
+    ],
+    "irbInterfaces": [
+      {
+        "name": "irb-5",
+        "spec": {
+          "bridgeDomain": "bd-5",
+          "evpnRouteAdvertisementType": {
+            "arpDynamic": true,
+            "arpStatic": true,
+            "ndDynamic": true,
+            "ndStatic": true,
+            "rfc9135SymmetricMode": true
+          },
+          "hostRoutePopulate": {
+            "evpn": {
+              "datapathProgramming": true,
+              "populate": true
+            }
+          },
+          "indexAllocation": {
+            "indexPool": "irb-subif-pool",
+            "mode": "GlobalPool"
+          },
+          "ipAddresses": [
+            {
+              "ipv4Address": {
+                "anycast": true,
+                "ipPrefix": "172.16.151.254/24",
+                "primary": true
+              }
+            }
+          ],
+          "ipMTU": 1500,
+          "ipv4": {
+            "arpTimeoutSeconds": 14400,
+            "learnUnsolicitedARP": "Disabled"
+          },
+          "router": "router-3"
+        }
+      }
+    ],
+    "protocols": {},
+    "routers": [
+      {
+        "name": "router-3",
+        "spec": {
+          "bgp": {
+            "autonomousSystem": 65401,
+            "ebgpPreference": 170,
+            "enabled": true,
+            "ibgpPreference": 170,
+            "ipv4Unicast": {
+              "enabled": true
+            },
+            "minWaitToAdvertiseSeconds": 0,
+            "rapidWithdrawl": true,
+            "waitForFIBInstall": false
+          },
+          "encapOptions": {
+            "vxlan": {
+              "tunnelIndexPool": "tunnel-index-pool",
+              "vni": 207,
+              "vniPool": "vni-pool"
+            }
+          },
+          "evi": 107,
+          "eviPool": "evi-pool",
+          "exportTarget": "target:1:107",
+          "importTarget": "target:1:107",
+          "routerID": "3.4.5.6",
+          "type": "EVPNVXLAN"
+        }
+      }
+    ],
+    "vlans": [
+      {
+        "name": "vlan-null-vnet-5",
+        "spec": {
+          "bridgeDomain": "bd-5",
+          "interfaceSelectors": [
+            "eda.nokia.com/vnet-5=vlan-bd-5"
+          ],
+          "vlanID": "105"
+        }
+      }
+    ]
+  }
+}

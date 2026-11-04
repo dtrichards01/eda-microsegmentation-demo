@@ -12,7 +12,7 @@ Standard **VirtualNetwork** services on an EVPN leaf fabric, using the **microse
 | red ↔ blue | Allow |
 | blue ↔ green | Allow |
 | red ↔ green | **Drop** |
-| Any other cross-group pair | Drop (implicit default deny) |
+| Any other cross-group pair | Drop (explicit `default deny` entry; there is no implicit deny) |
 
 ## Documentation
 
@@ -52,10 +52,13 @@ bash apply-dot1q.sh    # edge Dot1q + labels (catalog only — see scope lock fo
 | E | `vnet-ms-static` | StaticRoute + VLAN | `virtualNetworks` |
 | F | `vnet-ms-enf-router` | VLAN | `routers` |
 | G | `vnet-ms-enf-bd` | VLAN | `bridgeDomains` |
+| H | `vnet-ms-dci-1` + `vnet-ms-dci-2` (Talos only) | VLAN, two DCs over IPVPN | `virtualNetworks` |
 
 Per-variant purpose and enforcement points: **docs/EDA-Microsegmentation.md §2**.
 
-**Validated (Aug 2026):** D on leaf-2/3/4, E on leaf-6/7/8.
+**Validated (Aug 2026, WSL):** D on leaf-2/3/4, E on leaf-6/7/8.
+
+**Validated (Nov 2026, Talos #2):** all of A–G plus cross-DC test **H** (`vnet-ms-dci-1` + `vnet-ms-dci-2` over the IPVPN DCI), 66/66 checks, alongside the DCI, firewall and tenancy services. Routed variants need `lpm-source-lookup` active, which takes a leaf reboot. Build, scripts and reboot procedure: [talos/README.md](talos/README.md); results: test report §0.
 
 ## L3 / IRB
 
@@ -79,3 +82,4 @@ python3 scripts/run-ms-tests.py D E
 | `variants/microsegmentation-policies.yaml` | `ms-policy-*` per variant |
 | `docs/EDA-Microsegmentation.md` | Architecture and policy guide |
 | `docs/EDA-Microsegmentation-Test-Report.md` | Test results |
+| `talos/` | Talos #2 build and test scripts for A–H |

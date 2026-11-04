@@ -1,0 +1,333 @@
+﻿apiVersion: v1
+items:
+- apiVersion: interfaces.eda.nokia.com/v1
+  kind: Interface
+  metadata:
+    creationTimestamp: "2026-10-31T15:28:17Z"
+    generation: 1
+    labels:
+      eda.nokia.com/role: edge
+      eda.nokia.com/vnet-1: vlan-bd-1
+    name: srl-leaf-1-ethernet-1-5
+    namespace: clab-srl-leaf-spine-dcgw
+    resourceVersion: "81271576"
+    uid: b1c7b9e0-1b33-4c0e-a8c6-e4a196c06e28
+  spec:
+    description: edge link to client-1
+    enabled: true
+    encapType: "Null"
+    ethernet:
+      stormControl:
+        enabled: false
+    lldp: true
+    members:
+    - enabled: true
+      interface: ethernet-1-5
+      lacpPortPriority: 32768
+      node: srl-leaf-1
+    type: Interface
+  status:
+    enabled: true
+    lastChange: "2026-10-31T15:28:39.448Z"
+    members:
+    - enabled: true
+      interface: ethernet-1-5
+      lastChange: "2026-10-31T15:28:39.448Z"
+      lldpOperationalState: NotPresent
+      neighbors: []
+      node: srl-leaf-1
+      nodeInterface: ethernet-1/5
+      operationalState: Up
+      speed: 25G
+    operationalState: Up
+    speed: 25G
+- apiVersion: interfaces.eda.nokia.com/v1
+  kind: Interface
+  metadata:
+    creationTimestamp: "2026-10-31T15:28:17Z"
+    generation: 1
+    labels:
+      eda.nokia.com/role: edge
+      eda.nokia.com/vnet-1: vlan-bd-1
+    name: srl-leaf-2-ethernet-1-6
+    namespace: clab-srl-leaf-spine-dcgw
+    resourceVersion: "81271577"
+    uid: 8c57f2c2-54bd-411b-ae94-8c2feefd9c44
+  spec:
+    description: edge link to client-2
+    enabled: true
+    encapType: "Null"
+    ethernet:
+      stormControl:
+        enabled: false
+    lldp: true
+    members:
+    - enabled: true
+      interface: ethernet-1-6
+      lacpPortPriority: 32768
+      node: srl-leaf-2
+    type: Interface
+  status:
+    enabled: true
+    lastChange: "2026-10-31T15:28:39.506Z"
+    members:
+    - enabled: true
+      interface: ethernet-1-6
+      lastChange: "2026-10-31T15:28:39.506Z"
+      lldpOperationalState: NotPresent
+      neighbors: []
+      node: srl-leaf-2
+      nodeInterface: ethernet-1/6
+      operationalState: Up
+      speed: 25G
+    operationalState: Up
+    speed: 25G
+- apiVersion: interfaces.eda.nokia.com/v1
+  kind: Interface
+  metadata:
+    creationTimestamp: "2026-10-31T15:28:17Z"
+    generation: 1
+    labels:
+      eda.nokia.com/role: edge
+      eda.nokia.com/vnet-3: vlan-bd-3
+    name: srl-leaf-3-ethernet-1-5
+    namespace: clab-srl-leaf-spine-dcgw
+    resourceVersion: "81271580"
+    uid: 53b919b8-f5d8-4941-9eb7-4bd32334b68f
+  spec:
+    description: edge link to client-3
+    enabled: true
+    encapType: "Null"
+    ethernet:
+      stormControl:
+        enabled: false
+    lldp: true
+    members:
+    - enabled: true
+      interface: ethernet-1-5
+      lacpPortPriority: 32768
+      node: srl-leaf-3
+    type: Interface
+  status:
+    enabled: true
+    lastChange: "2026-10-31T15:28:39.447Z"
+    members:
+    - enabled: true
+      interface: ethernet-1-5
+      lastChange: "2026-10-31T15:28:39.447Z"
+      lldpOperationalState: NotPresent
+      neighbors: []
+      node: srl-leaf-3
+      nodeInterface: ethernet-1/5
+      operationalState: Up
+      speed: 100G
+    operationalState: Up
+    speed: 100G
+- apiVersion: interfaces.eda.nokia.com/v1
+  kind: Interface
+  metadata:
+    creationTimestamp: "2026-10-31T15:28:17Z"
+    generation: 1
+    labels:
+      eda.nokia.com/role: edge
+      eda.nokia.com/vnet-5: vlan-bd-5
+    name: srl-leaf-4-ethernet-1-5
+    namespace: clab-srl-leaf-spine-dcgw
+    resourceVersion: "81271584"
+    uid: 2ef651f7-a4c4-4051-84d7-2aec881113b6
+  spec:
+    description: edge link to client-4
+    enabled: true
+    encapType: "Null"
+    ethernet:
+      stormControl:
+        enabled: false
+    lldp: true
+    members:
+    - enabled: true
+      interface: ethernet-1-5
+      lacpPortPriority: 32768
+      node: srl-leaf-4
+    type: Interface
+  status:
+    enabled: true
+    lastChange: "2026-10-31T15:28:39.355Z"
+    members:
+    - enabled: true
+      interface: ethernet-1-5
+      lastChange: "2026-10-31T15:28:39.355Z"
+      lldpOperationalState: NotPresent
+      neighbors: []
+      node: srl-leaf-4
+      nodeInterface: ethernet-1/5
+      operationalState: Up
+      speed: 100G
+    operationalState: Up
+    speed: 100G
+- apiVersion: interfaces.eda.nokia.com/v1
+  kind: Interface
+  metadata:
+    creationTimestamp: "2026-10-31T15:28:17Z"
+    generation: 1
+    labels:
+      eda.nokia.com/role: edge
+      eda.nokia.com/vnet-2: vlan-bd-2
+    name: srl-leaf-5-ethernet-1-5
+    namespace: clab-srl-leaf-spine-dcgw
+    resourceVersion: "81271585"
+    uid: c38c4742-c0d9-48aa-bdb3-f227987d21c6
+  spec:
+    description: edge link to client-5
+    enabled: true
+    encapType: "Null"
+    ethernet:
+      stormControl:
+        enabled: false
+    lldp: true
+    members:
+    - enabled: true
+      interface: ethernet-1-5
+      lacpPortPriority: 32768
+      node: srl-leaf-5
+    type: Interface
+  status:
+    enabled: true
+    lastChange: "2026-10-31T15:28:39.993Z"
+    members:
+    - enabled: true
+      interface: ethernet-1-5
+      lastChange: "2026-10-31T15:28:39.993Z"
+      lldpOperationalState: NotPresent
+      neighbors: []
+      node: srl-leaf-5
+      nodeInterface: ethernet-1/5
+      operationalState: Up
+      speed: 25G
+    operationalState: Up
+    speed: 25G
+- apiVersion: interfaces.eda.nokia.com/v1
+  kind: Interface
+  metadata:
+    creationTimestamp: "2026-10-31T15:28:17Z"
+    generation: 1
+    labels:
+      eda.nokia.com/role: edge
+      eda.nokia.com/vnet-2: vlan-bd-2
+    name: srl-leaf-6-ethernet-1-6
+    namespace: clab-srl-leaf-spine-dcgw
+    resourceVersion: "81271596"
+    uid: 2b4a85b0-56ff-4efd-ad69-505902abe718
+  spec:
+    description: edge link to client-6
+    enabled: true
+    encapType: "Null"
+    ethernet:
+      stormControl:
+        enabled: false
+    lldp: true
+    members:
+    - enabled: true
+      interface: ethernet-1-6
+      lacpPortPriority: 32768
+      node: srl-leaf-6
+    type: Interface
+  status:
+    enabled: true
+    lastChange: "2026-10-31T15:28:39.430Z"
+    members:
+    - enabled: true
+      interface: ethernet-1-6
+      lastChange: "2026-10-31T15:28:39.430Z"
+      lldpOperationalState: NotPresent
+      neighbors: []
+      node: srl-leaf-6
+      nodeInterface: ethernet-1/6
+      operationalState: Up
+      speed: 25G
+    operationalState: Up
+    speed: 25G
+- apiVersion: interfaces.eda.nokia.com/v1
+  kind: Interface
+  metadata:
+    creationTimestamp: "2026-10-31T15:28:17Z"
+    generation: 1
+    labels:
+      eda.nokia.com/role: edge
+      eda.nokia.com/vnet-4: vlan-bd-4
+    name: srl-leaf-7-ethernet-1-5
+    namespace: clab-srl-leaf-spine-dcgw
+    resourceVersion: "81271617"
+    uid: f7f25a18-dc4c-4df3-ab34-5a41ec14b399
+  spec:
+    description: edge link to client-7
+    enabled: true
+    encapType: "Null"
+    ethernet:
+      stormControl:
+        enabled: false
+    lldp: true
+    members:
+    - enabled: true
+      interface: ethernet-1-5
+      lacpPortPriority: 32768
+      node: srl-leaf-7
+    type: Interface
+  status:
+    enabled: true
+    lastChange: "2026-10-31T15:28:39.522Z"
+    members:
+    - enabled: true
+      interface: ethernet-1-5
+      lastChange: "2026-10-31T15:28:39.522Z"
+      lldpOperationalState: NotPresent
+      neighbors: []
+      node: srl-leaf-7
+      nodeInterface: ethernet-1/5
+      operationalState: Up
+      speed: 100G
+    operationalState: Up
+    speed: 100G
+- apiVersion: interfaces.eda.nokia.com/v1
+  kind: Interface
+  metadata:
+    creationTimestamp: "2026-10-31T15:28:16Z"
+    generation: 1
+    labels:
+      eda.nokia.com/role: edge
+      eda.nokia.com/vnet-4: vlan-bd-4
+    name: srl-leaf-8-ethernet-1-5
+    namespace: clab-srl-leaf-spine-dcgw
+    resourceVersion: "81271635"
+    uid: fef3e2a3-3a36-467f-a6d7-3253006f8ff9
+  spec:
+    description: edge link to client-8
+    enabled: true
+    encapType: "Null"
+    ethernet:
+      stormControl:
+        enabled: false
+    lldp: true
+    members:
+    - enabled: true
+      interface: ethernet-1-5
+      lacpPortPriority: 32768
+      node: srl-leaf-8
+    type: Interface
+  status:
+    enabled: true
+    lastChange: "2026-10-31T15:28:39.569Z"
+    members:
+    - enabled: true
+      interface: ethernet-1-5
+      lastChange: "2026-10-31T15:28:39.569Z"
+      lldpOperationalState: NotPresent
+      neighbors: []
+      node: srl-leaf-8
+      nodeInterface: ethernet-1/5
+      operationalState: Up
+      speed: 100G
+    operationalState: Up
+    speed: 100G
+kind: List
+metadata:
+  resourceVersion: ""

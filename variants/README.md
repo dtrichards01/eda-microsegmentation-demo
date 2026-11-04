@@ -28,7 +28,9 @@ Each **VirtualNetwork** in this folder is a **dedicated** demo service for one a
 | F | `ms-assoc-enf-router` | `ms-policy-enf-router` |
 | G | `ms-assoc-enf-bd` | `ms-policy-enf-bd` |
 
-Common rule intent: red↔blue **allow**, blue↔green **allow**, red↔green **drop**, same-group allow, implicit default deny.
+Common rule intent: red↔blue **allow**, blue↔green **allow**, red↔green **drop**, same-group allow, then an explicit `default deny` entry. There is no implicit deny: without that entry unmatched traffic is forwarded.
+
+These manifests are the WSL catalog. The Talos #2 build of A–H (generated YAML, cross-DC H) is in `talos/` — see `talos/README.md`.
 
 Rule design notes (minimal vs explicit entries, logging): `docs/EDA-Microsegmentation.md` §3.5.
 

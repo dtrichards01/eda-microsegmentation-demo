@@ -1,0 +1,273 @@
+# Restore the default deny entry on tests C and F.
+---
+{
+  "apiVersion": "microsegmentation.eda.nokia.com/v1alpha1",
+  "kind": "MicroSegmentationPolicy",
+  "metadata": {
+    "name": "ms-policy-routed",
+    "namespace": "clab-srl-leaf-spine-dcgw",
+    "labels": {
+      "eda.nokia.com/ms-variant": "routed-interface-association"
+    },
+    "annotations": {
+      "eda.nokia.com/ms-demo-description": "Test C policy, serviceTargets.virtualNetworks"
+    }
+  },
+  "spec": {
+    "serviceTargets": {
+      "virtualNetworks": [
+        "vnet-ms-routed"
+      ]
+    },
+    "entries": [
+      {
+        "description": "allow red-red",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-red"
+          ],
+          "destinationGroupTag": [
+            "ms-red"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "allow blue-blue",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-blue"
+          ],
+          "destinationGroupTag": [
+            "ms-blue"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "allow green-green",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-green"
+          ],
+          "destinationGroupTag": [
+            "ms-green"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "allow red to/from blue",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-red"
+          ],
+          "destinationGroupTag": [
+            "ms-blue"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "allow blue to/from green",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-blue"
+          ],
+          "destinationGroupTag": [
+            "ms-green"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "block red to/from green",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-red"
+          ],
+          "destinationGroupTag": [
+            "ms-green"
+          ]
+        },
+        "action": {
+          "forward": "Drop",
+          "collectStats": true,
+          "log": true
+        }
+      },
+      {
+        "description": "default deny",
+        "bidirectional": true,
+        "match": {},
+        "action": {
+          "forward": "Drop",
+          "collectStats": true,
+          "log": false
+        }
+      }
+    ]
+  }
+}
+---
+{
+  "apiVersion": "microsegmentation.eda.nokia.com/v1alpha1",
+  "kind": "MicroSegmentationPolicy",
+  "metadata": {
+    "name": "ms-policy-enf-router",
+    "namespace": "clab-srl-leaf-spine-dcgw",
+    "labels": {
+      "eda.nokia.com/ms-variant": "enforcement-router-target"
+    },
+    "annotations": {
+      "eda.nokia.com/ms-demo-description": "Test F policy, serviceTargets.routers only"
+    }
+  },
+  "spec": {
+    "serviceTargets": {
+      "routers": [
+        "router-ms-enf-router"
+      ]
+    },
+    "entries": [
+      {
+        "description": "allow red-red",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-red"
+          ],
+          "destinationGroupTag": [
+            "ms-red"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "allow blue-blue",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-blue"
+          ],
+          "destinationGroupTag": [
+            "ms-blue"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "allow green-green",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-green"
+          ],
+          "destinationGroupTag": [
+            "ms-green"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "allow red to/from blue",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-red"
+          ],
+          "destinationGroupTag": [
+            "ms-blue"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "allow blue to/from green",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-blue"
+          ],
+          "destinationGroupTag": [
+            "ms-green"
+          ]
+        },
+        "action": {
+          "forward": "Accept",
+          "collectStats": true,
+          "log": false
+        }
+      },
+      {
+        "description": "block red to/from green",
+        "bidirectional": true,
+        "match": {
+          "sourceGroupTag": [
+            "ms-red"
+          ],
+          "destinationGroupTag": [
+            "ms-green"
+          ]
+        },
+        "action": {
+          "forward": "Drop",
+          "collectStats": true,
+          "log": true
+        }
+      },
+      {
+        "description": "default deny",
+        "bidirectional": true,
+        "match": {},
+        "action": {
+          "forward": "Drop",
+          "collectStats": true,
+          "log": false
+        }
+      }
+    ]
+  }
+}

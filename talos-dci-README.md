@@ -4,4 +4,6 @@ Talos / CLAB DCI service definitions (RouterInterconnect, BridgeDomainInterconne
 
 **`C:\Users\darrenri\Documents\eda-dci-lab`**
 
-This repo remains focused on microsegmentation demos (local WSL `kind` lab).
+This repo holds the microsegmentation demos: the WSL `kind` lab catalog (`variants/`) and the Talos #2 build of
+tests A–H (`talos/`). The only interconnects owned here are test H's `router-interconnect-ms-dci-1/-2`
+(`talos/gen-gate4.py`); the DCI services themselves stay in `eda-dci-lab`.

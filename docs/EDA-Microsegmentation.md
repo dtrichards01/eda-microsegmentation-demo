@@ -4,7 +4,8 @@
 **EDA release:** 26.4.2  
 **Microsegmentation app:** 6.0.2  
 **Namespace:** `clab-3-tier-leaf-spine-dcgw`  
-**Services:** Seven dedicated `vnet-ms-*` VirtualNetworks (variants A–G)
+**Services:** Seven dedicated `vnet-ms-*` VirtualNetworks (variants A–G), plus cross-DC variant H on Talos #2  
+**Current validation:** Talos #2 (EDA https://100.124.186.55, SR Linux 26.7.1), A–H all pass, 2026-11-04 — see `docs/EDA-Microsegmentation-Test-Report.md` §0 and `talos/README.md`
 
 ---
 
@@ -15,7 +16,7 @@ This lab demonstrates Nokia EDA microsegmentation on a three-tier leaf–spine f
 - **Red** can talk to **Blue**
 - **Blue** can talk to **Green**
 - **Red** cannot talk to **Green**
-- All other cross-group traffic is denied by default (zero-trust)
+- All other cross-group traffic is dropped by a final catch-all `default deny` entry (zero-trust). There is **no implicit deny**: without that entry, unmatched traffic is forwarded (verified on Talos #2).
 
 On the dataplane, EDA programs **Group-Based Policy (GBP)** on SR Linux **26.3+** (7220 IXR-D2L/D3L leaf platforms).
 
@@ -118,7 +119,7 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 | **Enforcement** | `ms-policy-routed` → `virtualNetworks: [vnet-ms-routed]`. |
 | **Service** | Per-leaf gateways: `172.16.80.1/24`, `.81.1/24`, `.82.1/24`; VLANs **80/81/82**. No shared IRB subnet. |
 | **Scope (catalog)** | leaf-5/6/7. |
-| **Status** | **Failed** (under investigation) — with policy applied, cross-subnet traffic fails even for explicit Allow rules; likely platform limitation on GBP over routed-interface paths. |
+| **Status** | **Validated on Talos #2** (2026-11-04, 8/8 with default deny). The earlier failure (WSL, and Talos before the fix) was not a platform limitation: `lpm-source-lookup` was configured but not active until a leaf reboot, so routed packets reached the far leaf with source tag 0 and hit the default deny. See **§2.12**. |
 
 ### 2.7 Variant D — IRB + VLAN association (`vnet-ms-irb`)
 
@@ -143,7 +144,7 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 | **Service** | `172.16.90.0/24`, IRB `172.16.90.254`, VLAN **90**. |
 | **Scope (validated)** | **leaf-6=blue**, **leaf-7=green**, **leaf-8=red** — client6/7/8, IPs `172.16.90.6/7/8`. Apply: `variants/_variant-e-leaf678-apply.yaml`. |
 | **Extra test** | red → `172.16.91.1` **deny** (dest classified green via static route, red↔green blocked). |
-| **Status** | **Validated** (2026-08-20). Not tested to an actual remote host — `static-remote-green` uses a **blackhole** route to validate prefix tagging behaviour only. |
+| **Status** | **Validated** (WSL 2026-08-20 with a blackhole route; Talos #2 2026-11-04, 10/10, with a real next hop: client-7 answers on `172.16.91.1`). On Talos E has **no default deny**: traffic to the static prefix is routed and then bridged to the next hop with the sending leaf's IRB MAC as source, which has tag 0 in the next-hop leaf's MAC table. |
 
 **What it proves:** GroupTags can bind to **StaticRoute** prefixes, not only VLAN/BI/RI/IRB objects.
 
@@ -156,7 +157,7 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 | **Enforcement** | `ms-policy-enf-router` → **`serviceTargets.routers: [router-ms-enf-router]`** (not `virtualNetworks`). |
 | **Service** | `172.16.100.0/24`, VLAN **100**. |
 | **Scope (catalog)** | leaf-5/6/7. |
-| **Status** | **Not currently validated** |
+| **Status** | **Validated on Talos #2** (2026-11-04, 8/8). Enforcing on the router filters only routed traffic, so Talos uses one subnet per colour (`172.16.140/141/142.0/24`); a shared subnet would never be filtered. |
 
 **What it proves:** Enforcement anchor can be the **router CR** rather than the whole VirtualNetwork.
 
@@ -169,9 +170,32 @@ Each variant is a **separate** `vnet-ms-*` VirtualNetwork on up to **three leave
 | **Enforcement** | `ms-policy-enf-bd` → **`serviceTargets.bridgeDomains: [bd-ms-enf-bd]`**. |
 | **Service** | VLAN **110**, no L3 gateway on clients. |
 | **Scope (catalog)** | leaf-5/6/7. |
-| **Status** | **Not currently validated** |
+| **Status** | **Validated on Talos #2** (2026-11-04, 6/6). |
 
 **What it proves:** Pure L2 microsegmentation with enforcement on **bridgeDomains**; hosts have no default route.
+
+### 2.11 Variant H — cross-DC (`vnet-ms-dci-1` + `vnet-ms-dci-2`, Talos #2 only)
+
+| Item | Detail |
+|------|--------|
+| **Used for** | Enforcing the same matrix between two data centres joined by an IPVPN/MPLS DCI. |
+| **Association** | `ms-assoc-dci`: VLANs in both DCs → red / blue / green. |
+| **Enforcement** | `ms-policy-dci` → `virtualNetworks: [vnet-ms-dci-1, vnet-ms-dci-2]`, no default deny. |
+| **Service** | DC1 `172.16.120.0/24` (red leaf-1, green leaf-3), DC2 `172.16.121.0/24` (blue leaf-5, green leaf-7), VLAN **120**. Each router is joined to the other DC by a `RouterInterconnect` on its DC gateway pair (IPVPN over SR-ISIS), like vnet-1/vnet-2. IRBs use `hostRoutePopulate.dynamic` so each host is advertised as a tagged `/32`. |
+| **Status** | **Validated on Talos #2** (2026-11-04, 10/10). |
+
+**What it proves:** The `gbp-tag` community survives the DC gateways' EVPN → IPVPN → EVPN re-origination, even though the gateways run no group-based policy. The sending leaf learns the remote host's tag and drops red → green before the traffic crosses the DCI. Per-host routes are required when colours share a subnet, because a subnet route carries one tag.
+
+### 2.12 Platform prerequisite — `lpm-source-lookup` needs a reboot
+
+SR Linux does not carry group tags in the VXLAN header here; each leaf derives both tags from its own tables (MAC table for bridged traffic; route table plus MAC table for routed traffic). For a **routed** packet arriving from VXLAN, the source tag comes from an LPM lookup of the source IP, enabled by `platform resource-management group-based-policy lpm-source-lookup true`. EDA configures it, but it only takes effect after a **chassis reboot**:
+
+```bash
+info from state platform resource-management group-based-policy
+# want: lpm-source-lookup true, chassis-reboot-required false
+```
+
+Until then, a final `default deny` drops allowed routed traffic (C, F). In containerlab a reboot needs link and client repair: `talos/scripts/leaf-reboot.sh` and `talos/README.md`.
 
 **Scope lock:** Never span all eight leaves in one `vnet-ms-*`. Never `nodeSelectors: [eda.nokia.com/role=leaf]` on MS demo routers. See `docs/VARIANT-SCOPE-LOCK.md`.
 
@@ -243,9 +267,9 @@ Ordered rules — **first match wins** (same behaviour as filters):
 | 4 | red | blue | Accept |
 | 5 | blue | green | Accept |
 | 6 | red | green | Drop |
-| 7 | * | * | Drop (implicit deny) |
+| 7 | * | * | Drop (explicit `default deny` entry, `match: {}`) |
 
-`bidirectional: true` generates reverse ACL entries on the switch.
+`bidirectional: true` generates reverse ACL entries on the switch. There is no implicit deny: traffic no entry matches is **forwarded**, so entry 7 is what makes the policy zero-trust.
 
 **Variant A example:**
 
@@ -270,7 +294,7 @@ For the chain intent (red ↔ blue, blue ↔ green, red ↔ green blocked), only
 | 1 | red → blue | Accept | red ↔ blue |
 | 2 | blue → green | Accept | blue ↔ green |
 
-Anything else — including **red ↔ green** and **green ↔ red** — falls through to deny. GBP is **not transitive**: red → blue and blue → green allowed does **not** allow red → green.
+Anything else — including **red ↔ green** and **green ↔ red** — falls through to the final `default deny` entry, which must be present: without it, unmatched traffic is forwarded. GBP is **not transitive**: red → blue and blue → green allowed does **not** allow red → green.
 
 Add **same-group** allow entries (red ↔ red, blue ↔ blue, green ↔ green) only if you need intra-group or self traffic; the two cross-group rules do not cover them.
 
@@ -282,12 +306,12 @@ The generated policies (`variants/gen-microsegmentation-policies.py`) use a **ri
 |-------|------------------|-------------|
 | Same-group × 3 | Required for self / intra-group pings in tests | Not redundant with cross-group allows |
 | red ↔ blue, blue ↔ green | Core chain | Minimum cross-group set |
-| **red ↔ green Drop** | **Not required** for correctness (implicit deny already blocks) | **Explicit combination** for operations |
-| **default deny** (`match: {}`) | May be required by the platform to program a terminal deny on SRL | Catch-all for any pair not listed above |
+| **red ↔ green Drop** | Redundant when the default deny is present; **required** where it is not (E and H on Talos) | **Explicit combination** for operations |
+| **default deny** (`match: {}`) | **Required** for zero-trust: there is no implicit deny | Catch-all for any pair not listed above |
 
 #### Why an explicit deny can still be a valid combination
 
-An explicit **red → green Drop** duplicates the outcome of implicit deny, but it is still useful when you want that **pair** to be visible and measurable:
+An explicit **red → green Drop** duplicates the outcome of the default deny, but it is still useful when you want that **pair** to be visible and measurable, and it keeps the pair blocked in policies that cannot use a default deny:
 
 | Benefit | Explanation |
 |---------|-------------|
@@ -313,7 +337,7 @@ In the generator, the red ↔ green rule uses `log: true`; allows and the defaul
 
 | Goal | Suggested entries |
 |------|-------------------|
-| **Leanest cross-group** | 2 allows (red↔blue, blue↔green) + platform deny |
+| **Leanest cross-group** | 2 allows (red↔blue, blue↔green) + `default deny` |
 | **Lab / connectivity tests** | + 3 same-group allows |
 | **Auditable deny of red ↔ green** | + explicit red↔green Drop with `log: true` (redundant for enforcement, valid for ops) |
 | **Explicit zero-trust tail** | + `match: {}` Drop as last entry |
@@ -410,11 +434,14 @@ GBP ACL: blue → green → **Accept**.
 |---------|-------------------------------------|-------------------------|
 | **A** | VLAN objects on edge subifs | VirtualNetwork (L2 tag + L3 IRB path) |
 | **B** | BridgeInterface CRs | VirtualNetwork |
-| **C** | RoutedInterface CRs | VirtualNetwork — **Failed** (under investigation) |
+| **C** | RoutedInterface CRs | VirtualNetwork (needs active `lpm-source-lookup`, §2.12) |
 | **D** | VLAN (clients) + IRB (gateway) | VirtualNetwork — decision at **IRB** |
 | **E** | VLAN (clients) + StaticRoute (prefix) | VirtualNetwork |
 | **F** | VLAN objects | **Router** CR (`router-ms-enf-router`) |
 | **G** | VLAN objects | **BridgeDomain** CR (`bd-ms-enf-bd`) — L2 only |
+| **H** | VLAN objects in both DCs | Both VirtualNetworks; the sending leaf drops using the remote host's tag learned over the DCI |
+
+The GBP ACL applies to packets entering any subinterface of the network-instance, including from VXLAN, so the sending and the receiving leaf both evaluate traffic. BUM traffic and packets extracted to the CPU (ARP, pings to IRB/gateway addresses) bypass it, so gateway pings prove reachability, not policy.
 
 | Location | Applied? |
 |----------|----------|
@@ -430,7 +457,7 @@ GBP ACL: blue → green → **Accept**.
 | red ↔ blue | Allow |
 | blue ↔ green | Allow |
 | red ↔ green | Drop |
-| green ↔ red | Drop (implicit deny) |
+| green ↔ red | Drop (explicit red ↔ green rule, `bidirectional: true`) |
 | same group | Allow |
 | Host → gateway | Allow |
 
@@ -486,6 +513,10 @@ kubectl apply -f variants/_variant-e-leaf678-apply.yaml
 | Variant D: gateway OK, all inter-host fails | `ms-assoc-irb` missing VLAN entries — need IRB + all three VLAN associations |
 | Variant E: prefix deny fails | `static-remote-green` present; prefix `172.16.91.0/24` tagged green |
 | 8-leaf scope blowout | Remove `nodeSelectors: [eda.nokia.com/role=leaf]` from MS demo routers |
+| Routed traffic (C, F) dropped by `default deny` even though an allow rule matches | `info from state platform resource-management group-based-policy` on the receiving leaf: `lpm-source-lookup false` / `chassis-reboot-required true` means it needs a reboot (§2.12) |
+| Routed-then-bridged traffic (E static next hop) dropped by `default deny` | The source is the sending leaf's IRB MAC, tag 0 in the next-hop leaf's MAC table; use no default deny and an explicit drop rule |
+| Unlisted pair is not blocked | There is no implicit deny; add the `default deny` (`match: {}`) entry last |
+| Containerlab leaf NotSynced after reboot | Container's own `mgmt0` got the management IP back; delete it (`ip addr del <ip> dev mgmt0`). Use `talos/scripts/leaf-reboot.sh` |
 
 ### Verify GroupTags (EDA + SR Linux)
 
@@ -536,6 +567,7 @@ Use the VirtualNetwork router / bridge-domain names for the variant under test (
 | `scripts/run-ms-tests.py` | Automated test suite A–G |
 | `variants/README.md` | Full service catalog |
 | `docs/diagrams/generate_diagrams.py` | Regenerate PNG diagrams for docs |
+| `talos/` | Talos #2 build (gates 1–4, generators), tests A–H, regression and leaf-reboot scripts — see `talos/README.md` |
 
 ---
 
@@ -550,7 +582,7 @@ Two independent choices (see **§2.2** for full explanation):
 
 | Target | Variant |
 |--------|---------|
-| **VLAN** | **A**, D, E, F, G |
+| **VLAN** | **A**, D, E, F, G, H |
 | **BridgeInterface** | **B** |
 | **RoutedInterface** | **C** |
 | **IRBInterface** | **D** (gateway) |
@@ -560,7 +592,7 @@ Two independent choices (see **§2.2** for full explanation):
 
 | Target | Variant |
 |--------|---------|
-| **VirtualNetwork** | **A–E** |
+| **VirtualNetwork** | **A–E**, H |
 | **Router** | **F** |
 | **BridgeDomain** | **G** (L2 only) |
 
@@ -572,15 +604,16 @@ Per-variant purpose, association, enforcement, and scope: **§2.4–§2.10**.
 
 See **`docs/EDA-Microsegmentation-Test-Report.md`** for ping matrices and sign-off status.
 
-| Variant | Last validated | Status |
-|---------|----------------|--------|
-| **A** VLAN (leaf-1/2/3) | 2026-07-31 | **Validated** |
-| **B** BridgeInterface (leaf-5/6/7) | 2026-08-20 | **Validated** |
-| **C** RoutedIF (leaf-5/6/7) | 2026-08-20 | **Failed** (under investigation) |
-| **D** IRB (leaf-2/3/4) | 2026-08-20 | **Validated** |
-| **E** StaticRoute (leaf-6/7/8) | 2026-08-20 | **Validated** |
-| **F** Router enforcement | — | **Not currently validated** |
-| **G** BridgeDomain enforcement | — | **Not currently validated** |
+| Variant | WSL (Aug 2026) | Talos #2 (2026-11-04) |
+|---------|----------------|-----------------------|
+| **A** VLAN | Validated | **8/8** |
+| **B** BridgeInterface | Validated | **8/8** |
+| **C** RoutedIF | Failed (root cause found later, §2.12) | **8/8** |
+| **D** IRB | Validated | **8/8** |
+| **E** StaticRoute | Validated (blackhole) | **10/10** (real next hop) |
+| **F** Router enforcement | Not validated | **8/8** |
+| **G** BridgeDomain enforcement | Not validated | **6/6** |
+| **H** Cross-DC | — | **10/10** |
 
 Rollout artifacts (gitignored): `docs/tmp/variant-d-leaf234-*`, `docs/tmp/variant-e-leaf678-*`.
 
@@ -595,22 +628,23 @@ Rollout artifacts (gitignored): `docs/tmp/variant-d-leaf234-*`, `docs/tmp/varian
 - `AssociationPolicy` translates resource targets into `GroupTag` identities used by GBP.
 - `MicroSegmentationPolicy` enforces the matrix with allow/deny entries on `serviceTargets`: `virtualNetworks`, `routers`, or `bridgeDomains`.
 
-### 14.2 Variant glossary (A–G)
+### 14.2 Variant glossary (A–H)
 
 | ID | One-line summary | Status |
 |----|------------------|--------|
-| **A** | VLAN → GroupTag; enforce on VirtualNetwork | **Validated** (leaf-1/2/3) |
-| **B** | BridgeInterface → GroupTag (explicit BI names required) | **Validated** (leaf-5/6/7) |
-| **C** | RoutedInterface → GroupTag | **Failed** (under investigation) |
-| **D** | IRB gateway tag + VLAN client tags; enforce at IRB | **Validated** (leaf-2/3/4) |
-| **E** | StaticRoute prefix tag + VLAN client tags | **Validated** (leaf-6/7/8) |
-| **F** | VLAN tags; enforce on **router** not VirtualNetwork | Not currently validated |
-| **G** | VLAN tags; enforce on **bridgeDomain** (L2 only) | Not currently validated |
+| **A** | VLAN → GroupTag; enforce on VirtualNetwork | **Validated** |
+| **B** | BridgeInterface → GroupTag (explicit BI names required) | **Validated** |
+| **C** | RoutedInterface → GroupTag | **Validated** on Talos #2 (needs active `lpm-source-lookup`) |
+| **D** | IRB gateway tag + VLAN client tags; enforce at IRB | **Validated** |
+| **E** | StaticRoute prefix tag + VLAN client tags | **Validated** |
+| **F** | VLAN tags; enforce on **router** not VirtualNetwork | **Validated** on Talos #2 |
+| **G** | VLAN tags; enforce on **bridgeDomain** (L2 only) | **Validated** on Talos #2 |
+| **H** | VLAN tags in two DCs joined over the IPVPN DCI | **Validated** on Talos #2 |
 
-Full descriptions: **§2.4–§2.10**. Scope lock: `docs/VARIANT-SCOPE-LOCK.md`.
+Full descriptions: **§2.4–§2.11**. Scope lock: `docs/VARIANT-SCOPE-LOCK.md`.
 
 **Word export:** `docs/EDA-Microsegmentation.docx` — regenerate with `bash scripts/generate-word-docs.sh` (requires pandoc; close Word first).
 
 ---
 
-*Document version: August 2026 (Word review — EDA 26.4.2, MS app 6.0.2). Repo: https://github.com/dtrichards01/eda-microsegmentation-demo*
+*Document version: November 2026 (Talos #2 validation of A–H; WSL content from August 2026 — EDA 26.4.2, MS app 6.0.2). Repo: https://github.com/dtrichards01/eda-microsegmentation-demo*

@@ -1,0 +1,78 @@
+﻿apiVersion: services.eda.nokia.com/v2
+kind: RouterInterconnect
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"services.eda.nokia.com/v2","kind":"RouterInterconnect","metadata":{"annotations":{},"name":"router-interconnect-vnet-2","namespace":"clab-srl-dcgw-wan"},"spec":{"interconnectBGPInstance":{"controlPlane":"IPVPN","domainId":"65000:101","encapsulation":"MPLS","evi":1000,"exportTarget":"target:1:101","importPolicy":"multi-rt-import","mpls":{"allowedTunnelTypes":["SR-ISIS"]},"routeDistinguisher":{"assignedNumber":"2","type":"Type 0"}},"nodeSelectors":["eda.nokia.com/dci=dc-2"],"primaryBGPInstance":{"domainId":"65001:201"},"routerRef":{"name":"router-2","namespace":"clab-srl-leaf-spine-dcgw"}}}
+  creationTimestamp: "2026-10-31T15:51:03Z"
+  generation: 2
+  name: router-interconnect-vnet-2
+  namespace: clab-srl-dcgw-wan
+  resourceVersion: "81287246"
+  uid: e54af96b-329a-45b9-af49-13bd6f745949
+spec:
+  interconnectBGPInstance:
+    controlPlane: IPVPN
+    domainId: 65000:101
+    encapsulation: MPLS
+    evi: 1000
+    exportTarget: target:1:101
+    importPolicy: multi-rt-import
+    mpls:
+      allowedTunnelTypes:
+      - SR-ISIS
+    routeDistinguisher:
+      assignedNumber: "2"
+      type: Type 0
+  nodeSelectors:
+  - eda.nokia.com/dci=dc-2
+  primaryBGPInstance:
+    domainId: 65001:201
+  routerRef:
+    name: router-2
+    namespace: clab-srl-leaf-spine-dcgw
+status:
+  lastChangeTime: "2026-10-31T15:51:11.000Z"
+  nodes:
+  - dcgw-3
+  - dcgw-4
+  operationalState: Up
+---
+apiVersion: services.eda.nokia.com/v2
+kind: RouterInterconnect
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"services.eda.nokia.com/v2","kind":"RouterInterconnect","metadata":{"annotations":{},"name":"router-interconnect-vnet-1","namespace":"clab-srl-leaf-spine-dcgw"},"spec":{"interconnectBGPInstance":{"controlPlane":"IPVPN","domainId":"65000:100","encapsulation":"MPLS","evi":1000,"exportTarget":"target:1:100","importTarget":"target:1:101","mpls":{"allowedTunnelTypes":["SR-ISIS"]},"routeDistinguisher":{"assignedNumber":"2","type":"Type 0"}},"nodeSelectors":["eda.nokia.com/dci=dc-1"],"primaryBGPInstance":{"domainId":"65000:200"},"routerRef":{"name":"router-1"}}}
+  creationTimestamp: "2026-10-31T15:51:03Z"
+  generation: 1
+  name: router-interconnect-vnet-1
+  namespace: clab-srl-leaf-spine-dcgw
+  resourceVersion: "81273758"
+  uid: 1533169b-1960-44b5-b1b9-7735124f4353
+spec:
+  interconnectBGPInstance:
+    controlPlane: IPVPN
+    domainId: 65000:100
+    encapsulation: MPLS
+    evi: 1000
+    exportTarget: target:1:100
+    importTarget: target:1:101
+    mpls:
+      allowedTunnelTypes:
+      - SR-ISIS
+    routeDistinguisher:
+      assignedNumber: "2"
+      type: Type 0
+  nodeSelectors:
+  - eda.nokia.com/dci=dc-1
+  primaryBGPInstance:
+    domainId: 65000:200
+  routerRef:
+    name: router-1
+status:
+  lastChangeTime: "2026-10-31T15:51:11.000Z"
+  nodes:
+  - dcgw-1
+  - dcgw-2
+  operationalState: Up
