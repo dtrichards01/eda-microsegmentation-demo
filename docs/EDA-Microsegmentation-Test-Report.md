@@ -129,6 +129,57 @@ side would only see an untagged /24.
 - Containerlab leaf reboots need the repair steps in `talos/README.md`; a bare `docker start` leaves links down and
   the node NotSynced.
 
+### 0.8 Evidence: GBP tags are carried in the BGP control plane
+
+Group tags travel as the `gbp-tag:0:N` extended community on EVPN routes (and IPVPN routes between DCs). Each
+leaf installs the tag into its MAC table (type-2) or route table (type-5), and the ACL looks up the source tag
+there. Per SR Linux documentation the tag is not carried in the VXLAN header on this platform. The lab behaves
+accordingly (H drops on the sending leaf, §0.6), but this was not confirmed with a packet capture. Group map:
+ms-red = 5, ms-green = 6, ms-blue = 7. The full raw output is in `talos/evidence/`.
+
+**Same pod, EVPN type-2 (leaf-8 receiving client-5, red).** Command:
+`show network-instance default protocols bgp routes evpn route-type 2 detail`
+
+```text
+Route Distinguisher: 11.0.0.12:4152
+MAC address        : AA:C1:AB:C4:38:9F
+IP Address         : 172.16.140.5
+neighbor           : 11.0.0.13            (same path via 11.0.0.14)
+    BGP next-hop          : 11.0.0.12
+    Communities           : [target:1:4152, target:1:4151, gbp-tag:0:5, mac-nh:1a:6f:13:ff:00:00, bgp-tunnel-encap:VXLAN]
+```
+
+The MAC table that route fills (`show network-instance bd-ms-enf-bd bridge-table mac-table all`). leaf-8 has no
+local config that would tag this remote MAC, so the tag comes from the route:
+
+```text
+| AA:C1:AB:C4:38: | vxlan-interface:vxlan0.530 vtep:11.0.0.12 | 10187282 | evpn | true | N/A | none | 5 (ms-red) | ...
+```
+
+**Cross-DC (H), hop by hop for client-1 172.16.120.1/32 (red).**
+
+1. EVPN type-5 from leaf-1, as received at dcgw-1 (RD `11.0.0.4:4171`):
+   `Communities: [target:1:4171, gbp-tag:0:5, mac-nh:..., bgp-tunnel-encap:VXLAN]`
+2. Re-originated as IPVPN across the WAN, at dcgw-3
+   (`show ... bgp routes l3vpn-ipv4-unicast prefix 172.16.120.1/32`, RD `65471:2`, from 11.0.0.7):
+   `Communities: target:1:4190, gbp-tag:0:5`
+3. Re-originated as EVPN type-5 into DC2, at leaf-7 (RD `11.0.2.3:4181`, next hop dcgw-3):
+   `Communities: [target:1:4181, mac-nh:1a:0f:0a:ff:00:00, bgp-tunnel-encap:VXLAN, gbp-tag:0:5]`,
+   `Domain Path: 65000:104, 65000:203`
+4. Installed on leaf-7 (`info flat from state network-instance * route-table ipv4-unicast`):
+
+```text
+router-ms-dci-2 route 172.16.120.1/32 route-type bgp-evpn         group-based-policy-tag 5   (client-1, red,   DC1)
+router-ms-dci-2 route 172.16.120.3/32 route-type bgp-evpn         group-based-policy-tag 6   (client-3, green, DC1)
+router-ms-dci-2 route 172.16.121.5/32 route-type bgp-evpn-ifl-host group-based-policy-tag 7  (client-5, blue,  DC2)
+router-ms-dci-2 route 172.16.121.7/32 route-type arp-nd           group-based-policy-tag 6   (client-7, green, local)
+```
+
+The DC gateways have no group-based policy config, yet the community is preserved through
+EVPN → IPVPN → EVPN. The dcgw-3 IPVPN table holds a per-host `/32` for each H client (`.120.1`, `.120.3` under
+RD `65471:2`; `.121.5`, `.121.7` under RD `65481:2`) alongside the `/24`s. Those per-host routes come from
+`hostRoutePopulate.dynamic` on the IRBs and let each host keep its own tag.
+
 ---
 
 ## 1. Executive summary — WSL lab (2026-08-20)

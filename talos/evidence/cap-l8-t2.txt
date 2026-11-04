@@ -1,0 +1,531 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Show report for the EVPN routes in network-instance  "default"
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.9:4142
+Tag-ID             : 0
+MAC address        : 00:00:5E:00:01:01
+IP Address         : 172.16.90.254
+neighbor           : 11.0.0.13
+path-id            : 0
+Received paths     : 1
+  Path 1: <Best,Valid,Used,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142
+    Route source          : neighbor 11.0.0.13 (last modified 2h17m43s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.9
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, bgp-tunnel-encap:VXLAN, mac-mobility:Seq:0/Static]
+    RR Attributes         : Originator-ID 11.0.0.9, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : none
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.9:4142
+Tag-ID             : 0
+MAC address        : 00:00:5E:00:01:01
+IP Address         : 172.16.90.254
+neighbor           : 11.0.0.14
+path-id            : 0
+Received paths     : 1
+  Path 1: <Valid,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142
+    Route source          : neighbor 11.0.0.14 (last modified 2h17m43s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.9
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, bgp-tunnel-encap:VXLAN, mac-mobility:Seq:0/Static]
+    RR Attributes         : Originator-ID 11.0.0.9, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : peer-ip
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.9:4142
+Tag-ID             : 0
+MAC address        : 1A:B3:14:FF:00:41
+IP Address         : 0.0.0.0
+neighbor           : 11.0.0.13
+path-id            : 0
+Received paths     : 1
+  Path 1: <Best,Valid,Used,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142
+    Route source          : neighbor 11.0.0.13 (last modified 2h17m43s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.9
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, bgp-tunnel-encap:VXLAN, mac-mobility:Seq:0/Static]
+    RR Attributes         : Originator-ID 11.0.0.9, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : none
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.9:4142
+Tag-ID             : 0
+MAC address        : 1A:B3:14:FF:00:41
+IP Address         : 0.0.0.0
+neighbor           : 11.0.0.14
+path-id            : 0
+Received paths     : 1
+  Path 1: <Valid,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142
+    Route source          : neighbor 11.0.0.14 (last modified 2h17m43s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.9
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, bgp-tunnel-encap:VXLAN, mac-mobility:Seq:0/Static]
+    RR Attributes         : Originator-ID 11.0.0.9, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : peer-ip
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.9:4142
+Tag-ID             : 0
+MAC address        : AA:C1:AB:B1:DE:57
+IP Address         : 0.0.0.0
+neighbor           : 11.0.0.13
+path-id            : 0
+Received paths     : 1
+  Path 1: <Best,Valid,Used,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142
+    Route source          : neighbor 11.0.0.13 (last modified 2m43s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.9
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, gbp-tag:0:7, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.9, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : none
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.9:4142
+Tag-ID             : 0
+MAC address        : AA:C1:AB:B1:DE:57
+IP Address         : 0.0.0.0
+neighbor           : 11.0.0.14
+path-id            : 0
+Received paths     : 1
+  Path 1: <Valid,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142
+    Route source          : neighbor 11.0.0.14 (last modified 2m43s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.9
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, gbp-tag:0:7, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.9, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : peer-ip
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.9:4142
+Tag-ID             : 0
+MAC address        : AA:C1:AB:B1:DE:57
+IP Address         : 172.16.90.6
+neighbor           : 11.0.0.13
+path-id            : 0
+Received paths     : 1
+  Path 1: <Best,Valid,Used,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142+4141
+    Route source          : neighbor 11.0.0.13 (last modified 2m43s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.9
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, target:1:4141, gbp-tag:0:7, mac-nh:1a:b3:14:ff:00:00, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.9, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : none
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.9:4142
+Tag-ID             : 0
+MAC address        : AA:C1:AB:B1:DE:57
+IP Address         : 172.16.90.6
+neighbor           : 11.0.0.14
+path-id            : 0
+Received paths     : 1
+  Path 1: <Valid,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142+4141
+    Route source          : neighbor 11.0.0.14 (last modified 2m43s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.9
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, target:1:4141, gbp-tag:0:7, mac-nh:1a:b3:14:ff:00:00, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.9, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : peer-ip
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.9:4153
+Tag-ID             : 0
+MAC address        : AA:C1:AB:B1:DE:57
+IP Address         : 172.16.141.6
+neighbor           : 11.0.0.13
+path-id            : 0
+Received paths     : 1
+  Path 1: <Best,Valid,Used,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4153+4151
+    Route source          : neighbor 11.0.0.13 (last modified 3m58s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.9
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4153, target:1:4151, gbp-tag:0:7, mac-nh:1a:b3:14:ff:00:00, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.9, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : none
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.9:4153
+Tag-ID             : 0
+MAC address        : AA:C1:AB:B1:DE:57
+IP Address         : 172.16.141.6
+neighbor           : 11.0.0.14
+path-id            : 0
+Received paths     : 1
+  Path 1: <Valid,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4153+4151
+    Route source          : neighbor 11.0.0.14 (last modified 3m58s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.9
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4153, target:1:4151, gbp-tag:0:7, mac-nh:1a:b3:14:ff:00:00, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.9, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : peer-ip
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.10:4142
+Tag-ID             : 0
+MAC address        : 00:00:5E:00:01:01
+IP Address         : 172.16.90.254
+neighbor           : 11.0.0.13
+path-id            : 0
+Received paths     : 1
+  Path 1: <Best,Valid,Used,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142
+    Route source          : neighbor 11.0.0.13 (last modified 2h17m43s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.10
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, bgp-tunnel-encap:VXLAN, mac-mobility:Seq:0/Static]
+    RR Attributes         : Originator-ID 11.0.0.10, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : none
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.10:4142
+Tag-ID             : 0
+MAC address        : 00:00:5E:00:01:01
+IP Address         : 172.16.90.254
+neighbor           : 11.0.0.14
+path-id            : 0
+Received paths     : 1
+  Path 1: <Valid,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142
+    Route source          : neighbor 11.0.0.14 (last modified 2h17m44s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.10
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, bgp-tunnel-encap:VXLAN, mac-mobility:Seq:0/Static]
+    RR Attributes         : Originator-ID 11.0.0.10, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : peer-ip
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.10:4142
+Tag-ID             : 0
+MAC address        : 1A:AE:15:FF:00:41
+IP Address         : 0.0.0.0
+neighbor           : 11.0.0.13
+path-id            : 0
+Received paths     : 1
+  Path 1: <Best,Valid,Used,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142
+    Route source          : neighbor 11.0.0.13 (last modified 2h17m44s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.10
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, bgp-tunnel-encap:VXLAN, mac-mobility:Seq:0/Static]
+    RR Attributes         : Originator-ID 11.0.0.10, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : none
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.10:4142
+Tag-ID             : 0
+MAC address        : 1A:AE:15:FF:00:41
+IP Address         : 0.0.0.0
+neighbor           : 11.0.0.14
+path-id            : 0
+Received paths     : 1
+  Path 1: <Valid,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142
+    Route source          : neighbor 11.0.0.14 (last modified 2h17m44s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.10
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, bgp-tunnel-encap:VXLAN, mac-mobility:Seq:0/Static]
+    RR Attributes         : Originator-ID 11.0.0.10, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : peer-ip
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.10:4142
+Tag-ID             : 0
+MAC address        : AA:C1:AB:BB:5C:09
+IP Address         : 0.0.0.0
+neighbor           : 11.0.0.13
+path-id            : 0
+Received paths     : 1
+  Path 1: <Best,Valid,Used,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142
+    Route source          : neighbor 11.0.0.13 (last modified 3m49s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.10
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, gbp-tag:0:6, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.10, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : none
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.10:4142
+Tag-ID             : 0
+MAC address        : AA:C1:AB:BB:5C:09
+IP Address         : 0.0.0.0
+neighbor           : 11.0.0.14
+path-id            : 0
+Received paths     : 1
+  Path 1: <Valid,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142
+    Route source          : neighbor 11.0.0.14 (last modified 3m49s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.10
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, gbp-tag:0:6, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.10, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : peer-ip
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.10:4142
+Tag-ID             : 0
+MAC address        : AA:C1:AB:BB:5C:09
+IP Address         : 172.16.90.7
+neighbor           : 11.0.0.13
+path-id            : 0
+Received paths     : 1
+  Path 1: <Best,Valid,Used,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142+4141
+    Route source          : neighbor 11.0.0.13 (last modified 3m49s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.10
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, target:1:4141, gbp-tag:0:6, mac-nh:1a:ae:15:ff:00:00, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.10, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : none
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.10:4142
+Tag-ID             : 0
+MAC address        : AA:C1:AB:BB:5C:09
+IP Address         : 172.16.90.7
+neighbor           : 11.0.0.14
+path-id            : 0
+Received paths     : 1
+  Path 1: <Valid,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4142+4141
+    Route source          : neighbor 11.0.0.14 (last modified 3m49s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.10
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4142, target:1:4141, gbp-tag:0:6, mac-nh:1a:ae:15:ff:00:00, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.10, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : peer-ip
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.12:4152
+Tag-ID             : 0
+MAC address        : AA:C1:AB:C4:38:9F
+IP Address         : 172.16.140.5
+neighbor           : 11.0.0.13
+path-id            : 0
+Received paths     : 1
+  Path 1: <Best,Valid,Used,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4152+4151
+    Route source          : neighbor 11.0.0.13 (last modified 12s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.12
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4152, target:1:4151, gbp-tag:0:5, mac-nh:1a:6f:13:ff:00:00, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.12, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : none
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.12:4152
+Tag-ID             : 0
+MAC address        : AA:C1:AB:C4:38:9F
+IP Address         : 172.16.140.5
+neighbor           : 11.0.0.14
+path-id            : 0
+Received paths     : 1
+  Path 1: <Valid,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4152+4151
+    Route source          : neighbor 11.0.0.14 (last modified 12s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.12
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4152, target:1:4151, gbp-tag:0:5, mac-nh:1a:6f:13:ff:00:00, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.12, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : peer-ip
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.12:4162
+Tag-ID             : 0
+MAC address        : AA:C1:AB:C4:38:9F
+IP Address         : 0.0.0.0
+neighbor           : 11.0.0.13
+path-id            : 0
+Received paths     : 1
+  Path 1: <Best,Valid,Used,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4162
+    Route source          : neighbor 11.0.0.13 (last modified 44s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.12
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4162, gbp-tag:0:5, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.12, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : none
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route Distinguisher: 11.0.0.12:4162
+Tag-ID             : 0
+MAC address        : AA:C1:AB:C4:38:9F
+IP Address         : 0.0.0.0
+neighbor           : 11.0.0.14
+path-id            : 0
+Received paths     : 1
+  Path 1: <Valid,>
+    ESI                   : 00:00:00:00:00:00:00:00:00:00
+    Label                 : 4162
+    Route source          : neighbor 11.0.0.14 (last modified 44s ago)
+    Route preference      : No MED, LocalPref is 100
+    Atomic Aggr           : false
+    BGP next-hop          : 11.0.0.12
+    AS Path               :  i [108]
+    Domain Path           : None
+    Communities           : [target:1:4162, gbp-tag:0:5, bgp-tunnel-encap:VXLAN]
+    RR Attributes         : Originator-ID 11.0.0.12, Cluster-List is [1.1.1.2]
+    Aggregation           : None
+    Unknown Attr          : None
+    Invalid Reason        : None
+    Tie Break Reason      : peer-ip
+    Route Flap Damping    : None
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
