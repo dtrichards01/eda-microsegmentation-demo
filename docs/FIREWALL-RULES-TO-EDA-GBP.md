@@ -96,18 +96,19 @@ What this means for policy:
 
 ## 5. Authoring guidance for rules exported to EDA
 
-A rule tagged `eda-export-to-gbp` is a contract. It should only use what the fabric can enforce exactly. Rules that break the contract are not refused on the firewall: they keep working there, and the FirewallPolicyReport shows them untranslated with the reason. The report is the check that the guidance was followed.
+A rule tagged `eda-export-to-gbp` is a contract. It should only use what the fabric can enforce exactly. Since firewall app v1.8.3 the app enforces the identity part of the contract (section 5.3). Rules that break it are not refused on the firewall: they keep working there, and the FirewallPolicyReport shows them rejected with the reason. The report is the check that the guidance was followed.
 
 ### 5.1 Identity: a group is one subnet, and the subnet is one tag
 
 | Do | Why |
 |----|-----|
-| Make each group (for example `EDA-RED`) hold **one address object per subnet**, and set that object to **the IRB subnet** of a bridge domain (`10.31.1.0/24` for `fw-pan-inside`), or to the subnet of a routed interface | Every host in the subnet is behind that bridge domain's attachments, so "the subnet" and "the hosts the fabric tags" are the same set |
+| Name the group exactly as its GroupTag, in **lower case** (`eda-red`, not `EDA-RED`) | Names are not translated. An upper-case group name rejects every rule that uses it (GROUP_NAME_NOT_LOWERCASE) |
+| Make each group hold **one address object per subnet**, and set that object to **the IRB subnet** of a bridge domain (`10.31.1.0/24` for `fw-pan-inside`), or to the subnet of a routed interface | Every host in the subnet is behind that bridge domain's attachments, so "the subnet" and "the hosts the fabric tags" are the same set |
 | Associate the GroupTag with **every** attachment (VLAN, bridge interface) of that bridge domain | If one VLAN in the bridge domain carries another tag, or none, the subnet is split and no single tag equals it |
 | Use one bridge domain or routed subnet per security group | The variant A design (one shared subnet, three VLANs in three colours) cannot be written as a subnet rule. Each colour there is a set of VLANs, not a prefix |
 | Several subnets in one group are fine, if each one follows the rows above | The GroupTag is associated with the attachments of every subnet |
-| Avoid `/32` host objects. Use them only where the host has an attachment to itself | A `/32` tags the whole attachment (section 3) |
-| Avoid dynamic address groups for exported rules | Runtime membership cannot follow into EDA |
+| Do not use `/32` host objects | A `/32` would tag the whole attachment (section 3), so it is rejected (HOST_MEMBER_NOT_SUPPORTED) |
+| Avoid dynamic address groups for exported rules | Runtime membership cannot follow into EDA, and registered IPs are `/32`s |
 | Use IPv4 `ip-netmask` objects only | Ranges, wildcards, FQDNs and IPv6 are not translated in v1 |
 
 The IRB gateway address lies inside the subnet, but it does not need to match. Traffic to the gateway is extracted to the CPU and is not filtered by group-based policy.
@@ -127,16 +128,18 @@ The IRB gateway address lies inside the subnet, but it does not need to match. T
 | Order | Exported rules above the rules that are not exported, with no non-exported rule in between that overlaps them | An earlier, overlapping rule of the other action class (PRECEDENCE_AMBIGUOUS) |
 | Final deny | Do not rely on it in the fabric | It is never exported. Add a `match: {}` Drop to the policy on the EDA side if the fabric must default-deny |
 
-### 5.3 What the app needs for subnet members (next release)
+### 5.3 What the app enforces (firewall app v1.8.3)
 
-v1.8.2 refuses prefix members (PREFIX_MEMBER_NOT_IN_V1) and checks only that a `/32` lies inside a tagged subnet. To follow 5.1 it would:
+| Element | Accepted when | Otherwise |
+|---------|---------------|-----------|
+| Group name | It is all lower case and a valid GroupTag name; it maps to the GroupTag of exactly that name | GROUP_NAME_NOT_LOWERCASE: no GroupTag is derived and every rule using the group is rejected (UNSUPPORTED, no candidate). GROUPTAG_NAME_INVALID for other bad names |
+| Prefix member | It **equals** the IRB subnet of a bridge domain, or the subnet of a routed interface | SUBNET_NOT_ATTACHMENT (overlaps a subnet without equalling it), UNMANAGED_MEMBER (outside every subnet), AMBIGUOUS_SCOPE (equal to subnets in two virtual networks) |
+| Attachments of that subnet | Every VLAN and bridge interface of the bridge domain, or the routed interface, carries this group's GroupTag and no other | MEMBER_OUTSIDE_TAG_TARGETS (none carry it), SUBNET_SPLIT_ACROSS_TAGS (one carries no tag, or another tag too) |
+| `/32` member, including a DAG registered IP | Never | HOST_MEMBER_NOT_SUPPORTED |
 
-| Member | Accept when | Otherwise |
-|--------|-------------|-----------|
-| Prefix shorter than `/32` | It **equals** the IRB subnet of a bridge domain, or the subnet of a routed interface, and every attachment of that bridge domain carries this group's GroupTag and no other discovered GroupTag | SUBNET_NOT_ATTACHMENT (not an IRB or routed subnet), SUBNET_SPLIT_ACROSS_TAGS (an attachment carries no tag or another tag) |
-| `/32` | It lies inside a tagged subnet (as today), and the attachment has no learned host outside the group | ATTACHMENT_WIDER_THAN_GROUP (needs the learned-host read, section 6) |
+An AssociationPolicy on `routedInterfaces` is now a checked target. Selector and static-route targets still block the group.
 
-With that change, the lab's `EDA-SECURE` (a `/24`) would translate once its subnet's attachments are associated with `eda-secure`. `EDA-RED`, `EDA-BLUE` and `EDA-GREEN` could move from `/32` clients to their zone subnets `10.31.1.0/24`, `10.31.2.0/24` and `10.21.1.0/24`.
+The lab Palo Alto follows this since 2026-11-02: static groups `eda-red`, `eda-blue` and `eda-green` hold `10.31.1.0/24`, `10.31.2.0/24` and `10.21.1.0/24`, and RED to BLUE and RED to GREEN use them and translate (3 entries). `EDA-RED-to-SECURE-ALLOW` still names `EDA-RED` and `EDA-SECURE` and is shown rejected with GROUP_NAME_NOT_LOWERCASE. A `/32` would only be safe where the host has an attachment to itself, which needs the learned-host check (ATTACHMENT_WIDER_THAN_GROUP, section 6) before it can be accepted.
 
 ## 6. Gaps to close, and who owns them
 
@@ -145,7 +148,7 @@ With that change, the lab's `EDA-SECURE` (a `/24`) would translate once its subn
 | No per-IP or per-MAC classification (an endpoint or prefix to GroupTag) | Nokia (EDA Microsegmentation app, SR Linux GBP) | Feature request: an AssociationPolicy target for host IPs or prefixes and MACs, programmed as SR Linux static group assignments |
 | Attachment wider than the firewall group (section 3) | Firewall app | New check: read the learned hosts on each tagged attachment (ARP/ND and MAC table through EQL). Flag ATTACHMENT_WIDER_THAN_GROUP and do not translate while a host behind it is not a firewall member |
 | Dynamic address group membership changes | Firewall app, then the Nokia feature above | Report the drift today. Only per-IP classification can follow it |
-| Subnet members equal to an IRB or routed subnet (section 5.3) | Firewall app | Next release. Makes the guidance in section 5 translatable |
+| Subnet members equal to an IRB or routed subnet, lower-case group names, no `/32` (section 5.3) | Firewall app | Done in v1.8.3 |
 | IPv6, more protocols, several groups per side, `log-end` | Firewall app | Profile extensions (`microseg-1to1` v2). The EDA model already has the fields |
 | Zero-trust tail (the firewall's final deny) | Microsegmentation app operator (gate F) | Add an explicit `match: {}` Drop as the last entry. Note variant E's caveat |
 | App-ID, User-ID, URL, HIP, profiles, reset actions, schedules | Stays on the firewall | Traffic that needs them must keep crossing the firewall (NGFW_REQUIRED) |
